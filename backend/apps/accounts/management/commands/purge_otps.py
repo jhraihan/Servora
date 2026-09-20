@@ -1,14 +1,6 @@
-"""
-Delete spent and expired OTP rows.
-
-Replaces Redis TTL in Phase 1 (PRD 8.4, FR-9.3). Idempotent: a repeated or
-overlapping run simply finds nothing left to delete.
-"""
-
 from django.core.management.base import BaseCommand
 
 from apps.accounts import services
-
 
 class Command(BaseCommand):
     help = "Purge OTP codes older than the retention window."

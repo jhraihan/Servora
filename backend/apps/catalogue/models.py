@@ -1,12 +1,3 @@
-"""
-Service taxonomy and geography.
-
-Two-level catalogue: ServiceCategory (Electrical) contains Service (Ceiling
-fan installation). Locations are a self-referencing tree -- city > thana >
-area -- because provider service areas and customer addresses are both
-expressed at whichever level is appropriate (PRD FR-2.1, FR-3.3).
-"""
-
 from decimal import Decimal
 
 from django.core.validators import MinValueValidator
@@ -16,16 +7,11 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.common.models import TimeStampedModel
 
-
 class ServiceCategory(TimeStampedModel):
-    """Top-level grouping shown on the landing page (PRD FR-2.4)."""
-
     name = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(max_length=90, unique=True, db_index=True)
     description = models.TextField(blank=True)
 
-    # Lucide/heroicon name resolved by the client; kept as a string so the
-    # catalogue stays data, not code.
     icon = models.CharField(max_length=40, blank=True)
 
     display_order = models.PositiveSmallIntegerField(default=0)
@@ -44,15 +30,7 @@ class ServiceCategory(TimeStampedModel):
             self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
 
-
 class Service(TimeStampedModel):
-    """
-    A concrete, bookable service.
-
-    The pricing model decides what the customer is shown before booking and
-    what the provider may set on their ProviderService (PRD FR-2.2).
-    """
-
     class PricingModel(models.TextChoices):
         FIXED = "fixed", _("Fixed price")
         HOURLY = "hourly", _("Hourly rate")
@@ -70,8 +48,6 @@ class Service(TimeStampedModel):
         default=PricingModel.FIXED,
     )
 
-    # Platform-suggested band in BDT, used to flag provider prices as
-    # unusually high or low rather than to forbid them (PRD FR-2.3, Q4).
     suggested_price_min = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True,
         validators=[MinValueValidator(Decimal("0"))],
@@ -116,13 +92,6 @@ class Service(TimeStampedModel):
         return super().save(*args, **kwargs)
 
     def price_flag(self, price):
-        """
-        Classify a provider's price against the suggested band.
-
-        Returns "low", "normal", "high", or None when no band is defined.
-        The platform flags outliers to the customer; it does not block them
-        (PRD 15, Q4).
-        """
         if self.suggested_price_min is None or self.suggested_price_max is None:
             return None
         if price < self.suggested_price_min:
@@ -131,16 +100,7 @@ class Service(TimeStampedModel):
             return "high"
         return "normal"
 
-
 class Location(TimeStampedModel):
-    """
-    Geography as a self-referencing tree: city > thana > area.
-
-    A centroid is stored on every node so proximity sorting works with the
-    earthdistance <@> operator without a separate coordinates table
-    (PRD 6.1, 8.1).
-    """
-
     class Level(models.TextChoices):
         CITY = "city", _("City")
         THANA = "thana", _("Thana")
@@ -167,7 +127,6 @@ class Location(TimeStampedModel):
             models.UniqueConstraint(
                 fields=["parent", "slug"], name="location_slug_unique_in_parent",
             ),
-            # A city is the root; anything below it must have a parent.
             models.CheckConstraint(
                 condition=(
                     models.Q(level="city")
@@ -196,7 +155,6 @@ class Location(TimeStampedModel):
         return self.latitude is not None and self.longitude is not None
 
     def ancestors(self):
-        """Root-first path to this node, for breadcrumbs."""
         chain, node = [], self.parent
         while node is not None:
             chain.append(node)
@@ -204,14 +162,6 @@ class Location(TimeStampedModel):
         return list(reversed(chain))
 
     def descendant_ids(self):
-        """
-        All ids at or below this node.
-
-        A provider serving "Dhanmondi" (thana) should match a request in
-        "Dhanmondi 27" (area), so area lookups expand downward. The tree is
-        three levels deep by design, so an iterative walk is cheaper and
-        clearer than a recursive CTE here.
-        """
         ids = [self.pk]
         frontier = [self.pk]
         while frontier:

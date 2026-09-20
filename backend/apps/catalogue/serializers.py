@@ -1,9 +1,6 @@
-"""Catalogue I/O shapes. Read-only to clients; admin writes via Django admin."""
-
 from rest_framework import serializers
 
 from .models import Location, Service, ServiceCategory
-
 
 class ServiceSerializer(serializers.ModelSerializer):
     category_slug = serializers.CharField(source="category.slug",
@@ -21,7 +18,6 @@ class ServiceSerializer(serializers.ModelSerializer):
             "typical_duration_minutes",
         ]
 
-
 class ServiceCategorySerializer(serializers.ModelSerializer):
     service_count = serializers.IntegerField(read_only=True, required=False)
 
@@ -30,20 +26,14 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug", "description", "icon",
                   "display_order", "service_count"]
 
-
 class ServiceCategoryDetailSerializer(ServiceCategorySerializer):
-    """Category with its services inlined, for /categories/{slug}/."""
-
     services = serializers.SerializerMethodField()
 
     class Meta(ServiceCategorySerializer.Meta):
         fields = ServiceCategorySerializer.Meta.fields + ["services"]
 
     def get_services(self, obj):
-        # Prefetched by the selector, so this does not trigger a query
-        # per category.
         return ServiceSerializer(obj.services.all(), many=True).data
-
 
 class LocationSerializer(serializers.ModelSerializer):
     parent_name = serializers.CharField(source="parent.name", read_only=True,
@@ -58,10 +48,7 @@ class LocationSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return str(obj)
 
-
 class LocationTreeSerializer(LocationSerializer):
-    """Nested children, for a one-request area picker."""
-
     children = serializers.SerializerMethodField()
 
     class Meta(LocationSerializer.Meta):

@@ -1,10 +1,3 @@
-"""
-Catalogue endpoints.
-
-All public and read-only: the catalogue is browsable without an account
-(PRD 3.2 role matrix). Admin manages it through Django admin.
-"""
-
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny
@@ -18,15 +11,13 @@ from .serializers import (
     ServiceCategorySerializer, ServiceSerializer,
 )
 
-
 class CategoryListView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ServiceCategorySerializer
-    pagination_class = None          # a short, fixed list -- no paging
+    pagination_class = None
 
     def get_queryset(self):
         return selectors.active_categories(with_service_count=True)
-
 
 class CategoryDetailView(APIView):
     permission_classes = [AllowAny]
@@ -41,7 +32,6 @@ class CategoryDetailView(APIView):
             )
         return Response(ServiceCategoryDetailSerializer(category).data)
 
-
 class ServiceListView(ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ServiceSerializer
@@ -51,7 +41,6 @@ class ServiceListView(ListAPIView):
             category_slug=self.request.query_params.get("category"),
             search=self.request.query_params.get("search"),
         )
-
 
 class LocationListView(ListAPIView):
     permission_classes = [AllowAny]
@@ -65,10 +54,7 @@ class LocationListView(ListAPIView):
             parent_id=int(parent) if parent and parent.isdigit() else None,
         )
 
-
 class LocationTreeView(APIView):
-    """Whole tree in one request, for the area picker."""
-
     permission_classes = [AllowAny]
 
     def get(self, request):

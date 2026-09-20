@@ -1,17 +1,9 @@
-"""
-Base settings shared by every environment.
-
-Environment-specific modules (dev.py, prod.py) import * from here and override.
-Nothing secret is hard-coded; all of it arrives via environment variables read
-from .env -- see PRD section 11.4.
-"""
 
 from datetime import timedelta
 from pathlib import Path
 
 import environ
 
-# backend/config/settings/base.py -> backend/
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 env = environ.Env(
@@ -34,7 +26,6 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 
-# --------------------------------------------------------------- applications
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -90,17 +81,13 @@ TEMPLATES = [
 ]
 
 
-# ------------------------------------------------------------------- database
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = False
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# ----------------------------------------------------------------------- auth
 AUTH_USER_MODEL = "accounts.User"
 
-# Accepts a phone number or an email address as the identifier, because
-# FR-1.1 allows registering with either (see accounts/backends.py).
 AUTHENTICATION_BACKENDS = [
     "apps.accounts.backends.PhoneOrEmailBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -118,7 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# ------------------------------------------------------------------------ drf
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -146,27 +132,20 @@ SIMPLE_JWT = {
 }
 
 
-# --------------------------------------------------------------- i18n / time
-# Strings are externalised from day one even though only English ships in
-# Phase 1 -- retrofitting i18n is far more expensive (PRD 12.4).
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Dhaka"
 USE_I18N = True
 USE_TZ = True
 
 
-# --------------------------------------------------------------------- static
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Verification documents live outside MEDIA_ROOT so no webserver rule can
-# ever expose them (PRD FR-1.6, 12.2).
 PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
 
-# ------------------------------------------------------- domain configuration
 OTP_TTL_SECONDS = env("OTP_TTL_SECONDS")
 OTP_MAX_SENDS_PER_HOUR = env("OTP_MAX_SENDS_PER_HOUR")
 OTP_MAX_VERIFY_ATTEMPTS = env("OTP_MAX_VERIFY_ATTEMPTS")
@@ -176,7 +155,6 @@ TRUST_ALGO_VERSION = env("TRUST_ALGO_VERSION")
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
 
 
-# -------------------------------------------------------------------- logging
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

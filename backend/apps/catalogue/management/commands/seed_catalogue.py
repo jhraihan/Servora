@@ -1,11 +1,3 @@
-"""
-Seed the launch catalogue and Dhaka geography (PRD FR-2.4, M2).
-
-Idempotent: safe to run repeatedly. Existing rows are updated in place
-rather than duplicated, so re-seeding after editing seed_data.py applies
-the change without orphaning provider offerings that point at a Service.
-"""
-
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
@@ -14,7 +6,6 @@ from django.utils.text import slugify
 
 from apps.catalogue.models import Location, Service, ServiceCategory
 from apps.catalogue.seed_data import CATEGORIES, DHAKA
-
 
 class Command(BaseCommand):
     help = "Create or update service categories, services and locations."
@@ -41,7 +32,6 @@ class Command(BaseCommand):
                 "Locations:  %d created, %d updated" % locs
             ))
 
-    # ------------------------------------------------------------------
     def _seed_catalogue(self):
         cat_created = cat_updated = 0
         svc_created = svc_updated = 0
@@ -82,7 +72,6 @@ class Command(BaseCommand):
 
         return (cat_created, cat_updated), (svc_created, svc_updated)
 
-    # ------------------------------------------------------------------
     def _seed_locations(self):
         created = updated = 0
 

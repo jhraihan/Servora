@@ -1,9 +1,6 @@
-"""Admin management of the catalogue (PRD FR-2.1)."""
-
 from django.contrib import admin
 
 from .models import Location, Service, ServiceCategory
-
 
 class ServiceInline(admin.TabularInline):
     model = Service
@@ -11,7 +8,6 @@ class ServiceInline(admin.TabularInline):
     fields = ["name", "pricing_model", "suggested_price_min",
               "suggested_price_max", "display_order", "is_active"]
     prepopulated_fields = {"slug": ("name",)}
-
 
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(admin.ModelAdmin):
@@ -26,7 +22,6 @@ class ServiceCategoryAdmin(admin.ModelAdmin):
     def service_count(self, obj):
         return obj.services.count()
 
-
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ["name", "category", "pricing_model",
@@ -35,7 +30,6 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = ["name", "description"]
     prepopulated_fields = {"slug": ("name",)}
     autocomplete_fields = ["category"]
-
 
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):

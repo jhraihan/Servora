@@ -1,29 +1,13 @@
-"""Base models shared across apps."""
-
 from django.db import models
 
-
 class TimeStampedModel(models.Model):
-    """Adds created_at / updated_at to any model."""
-
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
 
-
 class AppendOnlyModel(TimeStampedModel):
-    """
-    Base for records that must never be mutated or removed -- BookingEvent,
-    TrustSnapshot, JobRun (PRD 6.3, 12.3).
-
-    The guard lives here rather than relying on convention, so an accidental
-    .save() on a loaded instance fails loudly instead of silently rewriting
-    history. Bulk paths (queryset.update / .delete) bypass Python-level hooks
-    and are additionally blocked by a database trigger in a later migration.
-    """
-
     class Meta:
         abstract = True
 

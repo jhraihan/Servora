@@ -1,11 +1,4 @@
-"""
-Production settings.
-
-`python manage.py check --deploy` must pass with no warnings before a
-release (PRD 11.6).
-"""
-
-from .base import *  # noqa: F401,F403
+from .base import *
 from .base import env
 
 DEBUG = False
@@ -20,7 +13,6 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 
 OTP_ECHO_TO_LOG = False
 
-# --- transport security ---------------------------------------------------
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True

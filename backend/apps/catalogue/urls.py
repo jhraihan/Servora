@@ -1,5 +1,3 @@
-"""Catalogue routes (PRD 9.2)."""
-
 from django.urls import path
 
 from . import views

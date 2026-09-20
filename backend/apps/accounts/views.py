@@ -1,9 +1,3 @@
-"""
-Views handle HTTP concerns only: permissions, shape, status codes.
-
-Every decision about whether an operation is allowed lives in services.py
-(PRD 8.2).
-"""
 
 from django.contrib.auth import get_user_model
 from rest_framework import status
@@ -40,8 +34,6 @@ class RegisterView(APIView):
             role=data["role"],
         )
 
-        # Issue a code immediately so the client can move straight to the
-        # verify step rather than making a second call.
         if user.phone:
             services.send_phone_otp(phone=user.phone)
 
@@ -111,8 +103,6 @@ class LogoutView(APIView):
         try:
             RefreshToken(refresh).blacklist()
         except Exception:
-            # An already-blacklisted or malformed token is not an error
-            # worth surfacing -- the desired end state is the same.
             pass
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -146,8 +136,6 @@ class SwitchRoleView(APIView):
 
 
 class AddProfileView(APIView):
-    """Attach a second role to an existing account (PRD 3.2)."""
-
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

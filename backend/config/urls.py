@@ -1,4 +1,3 @@
-"""Root URL configuration. API is versioned at /api/v1/ (PRD 9.1)."""
 
 from django.conf import settings
 from django.conf.urls.static import static

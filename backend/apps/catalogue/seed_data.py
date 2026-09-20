@@ -1,16 +1,3 @@
-"""
-Launch catalogue data (PRD FR-2.4) and Dhaka geography.
-
-Kept as data rather than inline in the command so it can be imported by
-tests and reviewed without reading command plumbing.
-
-Prices are BDT. The bands are starting estimates for typical Dhaka market
-rates -- they exist to flag outliers, not to fix prices, and PRD Q4 leaves
-enforcement open.
-"""
-
-# (name, icon, description, [services])
-# service: (name, pricing_model, price_min, price_max, duration_minutes)
 CATEGORIES = [
     (
         "Electrical", "zap",
@@ -107,9 +94,6 @@ CATEGORIES = [
     ),
 ]
 
-
-# Dhaka: city -> thanas -> areas, with approximate centroids.
-# Coordinates are good enough for distance sorting, not for navigation.
 DHAKA = {
     "name": "Dhaka",
     "lat": 23.8103, "lon": 90.4125,

@@ -1,9 +1,3 @@
-"""
-Serializers define I/O shape only -- no business rules (PRD 8.2).
-
-Anything that decides *whether* something may happen lives in services.py.
-"""
-
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -13,23 +7,17 @@ from .validators import normalise_bd_phone, validate_bd_phone
 
 User = get_user_model()
 
-
 class PhoneField(serializers.CharField):
-    """Normalises on input so +8801.., 01.., and 8801.. all converge."""
-
     def to_internal_value(self, data):
         value = normalise_bd_phone(super().to_internal_value(data))
         validate_bd_phone(value)
         return value
 
-
-# ------------------------------------------------------------------- profiles
 class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
         fields = ["id", "default_address", "created_at"]
         read_only_fields = ["id", "created_at"]
-
 
 class ProviderProfileSerializer(serializers.ModelSerializer):
     phone_verified = serializers.BooleanField(read_only=True)
@@ -46,8 +34,6 @@ class ProviderProfileSerializer(serializers.ModelSerializer):
             "median_response_seconds",
             "created_at",
         ]
-        # Trust and verification are written only by the engine and by admin
-        # review -- never by the profile owner (PRD 12.2).
         read_only_fields = [
             "id", "created_at",
             "identity_verified", "skill_verified", "address_verified",
@@ -56,7 +42,6 @@ class ProviderProfileSerializer(serializers.ModelSerializer):
             "jobs_completed", "jobs_cancelled", "jobs_accepted",
             "median_response_seconds",
         ]
-
 
 class UserSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
@@ -80,8 +65,6 @@ class UserSerializer(serializers.ModelSerializer):
     def get_roles(self, obj):
         return obj.roles
 
-
-# --------------------------------------------------------------- registration
 class RegisterSerializer(serializers.Serializer):
     phone = PhoneField(required=False, allow_null=True)
     email = serializers.EmailField(required=False, allow_null=True)
@@ -100,14 +83,12 @@ class RegisterSerializer(serializers.Serializer):
             )
         return attrs
 
-
 class OTPSendSerializer(serializers.Serializer):
     phone = PhoneField()
     purpose = serializers.ChoiceField(
         choices=PhoneOTP.Purpose.choices,
         default=PhoneOTP.Purpose.REGISTRATION,
     )
-
 
 class OTPVerifySerializer(serializers.Serializer):
     phone = PhoneField()
@@ -117,21 +98,12 @@ class OTPVerifySerializer(serializers.Serializer):
         default=PhoneOTP.Purpose.REGISTRATION,
     )
 
-
 class SwitchRoleSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
         choices=[User.Role.CUSTOMER, User.Role.PROVIDER]
     )
 
-
-# -------------------------------------------------------------------- tokens
 class ShebaTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Adds the roles the user actually holds to the token payload, so the
-    client can render the right navigation without a second request
-    (PRD FR-1.3).
-    """
-
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
