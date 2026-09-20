@@ -4,14 +4,14 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M2 Catalogue — complete.** 112 tests passing.
+**M3 Providers — complete.** 192 tests passing.
 
 | Milestone | State |
 |---|---|
 | M1 Foundation (auth, OTP, roles) | Done |
 | M2 Catalogue (services, locations, seed) | Done |
-| M3 Providers | Not started |
-| M4 Trust engine | Not started |
+| M3 Providers (profiles, areas, availability, verification) | Done |
+| M4 Trust engine | Next |
 
 ## Running it
 
@@ -38,7 +38,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 112
+python -m pytest              # all 192
 python -m pytest -k otp       # one area
 ```
 
@@ -73,6 +73,36 @@ ALTER ROLE sheba CREATEDB;
 | GET | `/api/v1/locations/` | `?level=` `?parent=` |
 | GET | `/api/v1/locations/tree/` | Whole tree, one request |
 
+## Endpoints in M3
+
+Public:
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/providers/{id}/` | Profile with full trust breakdown |
+| GET | `/api/v1/providers/{id}/availability/` | `?start=YYYY-MM-DD&days=N` |
+
+Provider-only (requires a provider profile):
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/PATCH | `/api/v1/provider/profile/` | |
+| POST | `/api/v1/provider/accepting-work/` | Instant on/off toggle |
+| GET/POST | `/api/v1/provider/services/` | Offerings with pricing |
+| PATCH/DELETE | `/api/v1/provider/services/{id}/` | |
+| GET/PUT | `/api/v1/provider/service-areas/` | Thana or area level only |
+| GET/PUT | `/api/v1/provider/availability/` | Weekly windows |
+| POST | `/api/v1/provider/availability/exceptions/` | Leave / extra days |
+| GET/POST | `/api/v1/provider/verification/` | NID, trade certificate |
+| POST | `/api/v1/provider/work-photos/` | Max 10 |
+
+Admin-only:
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/admin/verifications/` | Pending queue |
+| POST | `/api/v1/admin/verifications/{id}/decide/` | Approve or reject |
+
 In development the OTP is **printed to the server log** rather than sent —
 there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
 
@@ -83,6 +113,7 @@ config/settings/     base.py, dev.py, prod.py
 apps/common/         base models, exceptions, pagination, throttling
 apps/accounts/       User, profiles, OTP, JWT, roles
 apps/catalogue/      ServiceCategory, Service, Location, seed data
+apps/providers/      offerings, service areas, availability, verification
 
 # within each app:
   models.py          persistence only, no business rules
@@ -110,6 +141,7 @@ Phase 1 has no Celery or Redis. Recurring work runs as management commands
 
 ```bash
 python manage.py purge_otps          # expired OTP rows
+python manage.py purge_documents     # verification files past retention
 python manage.py seed_catalogue      # idempotent; safe to re-run
 ```
 
@@ -132,6 +164,18 @@ and §11.5.
   which drops the ORDER BY entirely. `selectors.active_categories()`
   re-applies ordering explicitly; without it the landing page rendered
   categories in arbitrary order. Two regression tests cover it.
+- **Verification documents are stored OUTSIDE public media.** They use
+  `apps/common/storage.PrivateMediaStorage`, which writes to
+  `PRIVATE_MEDIA_ROOT` and raises on `.url()`. An early version used the
+  default storage, which put NID scans under `MEDIA_ROOT` where Django (in
+  DEBUG) and Nginx (in production) would serve them to anyone who guessed
+  the path. Four tests assert the boundary.
+- **`identity_verified` requires BOTH NID sides approved.** Flags are derived
+  in `_sync_verification_flags` from approved documents; they are never set
+  directly, and no serializer exposes them as writable.
+- **Every provider-owned endpoint scopes by `provider_id` in the query**, not
+  just by object id, so one provider cannot read or mutate another's rows.
+  The 404-on-foreign-object behaviour is tested per endpoint.
 - **Locations are a three-level tree** (city > thana > area) with a centroid
   on every node. `Location.descendant_ids()` expands downward, so a provider
   serving "Dhanmondi" matches a request in "Dhanmondi 27". Proximity sorting
