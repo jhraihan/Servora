@@ -1,0 +1,80 @@
+# ==========================================================================
+# SECRETS -- never commit. If one of these ever lands in a commit, rotate
+# the credential; removing the file in a later commit does NOT remove it
+# from history.
+# ==========================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+secrets.yml
+secrets.yaml
+
+# --- python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+build/
+develop-eggs/
+.installed.cfg
+
+# --- testing / coverage ---------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# --- django ---------------------------------------------------------------
+*.log
+db.sqlite3
+db.sqlite3-journal
+/backend/media/
+/backend/private_media/
+/backend/staticfiles/
+local_settings.py
+
+# --- database dumps -------------------------------------------------------
+*.sql
+*.dump
+*.sql.gz
+!**/migrations/*.py
+
+# --- node / react ---------------------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# --- editors --------------------------------------------------------------
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# --- os -------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
