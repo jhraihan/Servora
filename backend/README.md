@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M4 Trust engine — complete.** 277 tests passing.
+**M5 Discovery — complete.** 303 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -12,7 +12,8 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 | M2 Catalogue (services, locations, seed) | Done |
 | M3 Providers (profiles, areas, availability, verification) | Done |
 | M4 Trust engine (six factors, snapshots, audit) | Done |
-| M5 Discovery (search, filters, ranking) | Next |
+| M5 Discovery (search, filters, trust ranking) | Done |
+| M6 Booking (request lifecycle, state machine) | Next |
 
 ## Running it
 
@@ -39,7 +40,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 277
+python -m pytest              # all 303
 python -m pytest -k otp       # one area
 ```
 
@@ -112,6 +113,19 @@ Admin-only:
 | GET | `/api/v1/provider/trust-history/` | Provider | Own score over time |
 | GET | `/api/v1/admin/trust-audit/{id}/` | Admin | Snapshots with factor inputs |
 | POST | `/api/v1/admin/trust-recompute/{id}/` | Admin | Force a recompute |
+
+## Endpoints in M5
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/v1/providers/` | Public | Trust-ranked search |
+
+Filters: `service` `category` `location` `min_trust` `tier` `verified_only`
+`price_min` `price_max` `available_on` `ordering`.
+
+`ordering` accepts `-trust_score` (default), `price`, or `distance`.
+Malformed filter values are ignored rather than rejected, so a bad query
+string degrades to a broader result set instead of a 400.
 
 In development the OTP is **printed to the server log** rather than sent —
 there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
@@ -205,6 +219,17 @@ and §11.5.
   existing row and on delete. Every score is reconstructible from its
   recorded factors and `algo_version`, which is what makes the number
   defensible when a provider disputes it.
+- **Search returns a constant 2 queries regardless of result count.** The
+  nested `service_areas` serializer was an N+1 — 13 queries for 4 providers,
+  which would have been ~200 for a full page. A `Prefetch` on the base
+  queryset fixed it, and `test_search_query_count_is_constant` asserts the
+  count at two different result sizes so a regression fails loudly.
+- **Verified providers outrank unverified at equal trust** (FR-4.6). Every
+  ordering ends with `-identity_verified` then `pk`, so ties are broken
+  deterministically and pagination cannot show the same provider twice.
+- **Location matching expands both directions.** A provider serving a thana
+  matches a request in any area inside it, and a provider registered to a
+  specific area matches a thana-level search.
 - **Locations are a three-level tree** (city > thana > area) with a centroid
   on every node. `Location.descendant_ids()` expands downward, so a provider
   serving "Dhanmondi" matches a request in "Dhanmondi 27". Proximity sorting

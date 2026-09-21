@@ -79,11 +79,13 @@ migration to one line per call site.
 | M2 Catalogue — services, locations, seed | Done |
 | M3 Providers — profiles, areas, availability, verification | Done |
 | M4 Trust engine — six factors, snapshots, audit trail | Done |
-| M5 Discovery — search, filters, trust ranking | Next |
-| M6–M10 | Planned |
+| M5 Discovery — search, filters, trust ranking | Done |
+| M6 Booking — request lifecycle, state machine | Next |
+| M7–M10 | Planned |
 
-277 tests passing. The trust engine reproduces both PRD worked examples
-exactly (base scores 84.19 and 53.48).
+303 tests passing. The trust engine reproduces both PRD worked examples
+exactly (base scores 84.19 and 53.48), and search ranks by trust rather
+than by price.
 
 ## Getting started
 

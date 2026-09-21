@@ -5,6 +5,7 @@ from . import views
 app_name = "providers"
 
 urlpatterns = [
+    path("providers/", views.ProviderSearchView.as_view(), name="search"),
     path("providers/<int:provider_id>/", views.ProviderDetailView.as_view(),
          name="detail"),
     path("providers/<int:provider_id>/availability/",

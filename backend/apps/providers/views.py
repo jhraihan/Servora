@@ -1,5 +1,6 @@
 from datetime import date as date_cls
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 
 from rest_framework import status
 from rest_framework.generics import ListAPIView
@@ -10,12 +11,13 @@ from rest_framework.views import APIView
 
 from apps.common.exceptions import NotFound
 
-from . import selectors, services
+from . import search, selectors, services
 from .permissions import IsAdminUser, IsProvider
 from .serializers import (
     AcceptingWorkSerializer, AvailabilityExceptionSerializer,
     AvailabilitySerializer, ProviderProfileWriteSerializer,
-    ProviderPublicSerializer, ProviderServiceSerializer,
+    ProviderPublicSerializer, ProviderSearchResultSerializer,
+    ProviderServiceSerializer,
     ProviderServiceUpdateSerializer, ProviderServiceWriteSerializer,
     ServiceAreaSerializer,
     ServiceAreaWriteSerializer, VerificationDecisionSerializer,
@@ -294,3 +296,46 @@ class VerificationDecisionView(APIView):
             ),
         )
         return Response(VerificationDocumentSerializer(document).data)
+
+
+class ProviderSearchView(ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = ProviderSearchResultSerializer
+
+    def get_queryset(self):
+        params = self.request.query_params
+        return search.search_providers(
+            service_id=_as_int(params.get("service")),
+            category_slug=params.get("category"),
+            location_id=_as_int(params.get("location")),
+            min_trust=_as_decimal(params.get("min_trust")),
+            tier=params.get("tier"),
+            verified_only=params.get("verified_only") in ("1", "true", "True"),
+            price_min=_as_decimal(params.get("price_min")),
+            price_max=_as_decimal(params.get("price_max")),
+            available_on=_as_date(params.get("available_on")),
+            ordering=params.get("ordering", search.SORT_TRUST),
+        )
+
+
+def _as_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _as_decimal(value):
+    try:
+        return Decimal(value)
+    except (TypeError, InvalidOperation):
+        return None
+
+
+def _as_date(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None

@@ -190,3 +190,24 @@ class ProviderPublicSerializer(serializers.ModelSerializer):
 
 class AcceptingWorkSerializer(serializers.Serializer):
     is_accepting_work = serializers.BooleanField()
+
+
+class ProviderSearchResultSerializer(serializers.ModelSerializer):
+    phone_verified = serializers.BooleanField(read_only=True)
+    from_price = serializers.SerializerMethodField()
+    service_areas = ServiceAreaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProviderProfile
+        fields = [
+            "id", "display_name", "experience_years",
+            "identity_verified", "skill_verified", "phone_verified",
+            "trust_score", "trust_tier",
+            "jobs_completed", "jobs_cancelled", "median_response_seconds",
+            "from_price", "service_areas",
+        ]
+        read_only_fields = fields
+
+    def get_from_price(self, obj):
+        price = getattr(obj, "matched_price", None)
+        return str(price) if price is not None else None
