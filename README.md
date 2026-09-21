@@ -77,11 +77,13 @@ migration to one line per call site.
 |---|---|
 | M1 Foundation — auth, OTP, JWT, roles | Done |
 | M2 Catalogue — services, locations, seed | Done |
-| M3 Providers — profiles, areas, availability | Next |
-| M4 Trust engine | Planned |
-| M5–M10 | Planned |
+| M3 Providers — profiles, areas, availability, verification | Done |
+| M4 Trust engine — six factors, snapshots, audit trail | Done |
+| M5 Discovery — search, filters, trust ranking | Next |
+| M6–M10 | Planned |
 
-112 tests passing.
+277 tests passing. The trust engine reproduces both PRD worked examples
+exactly (base scores 84.19 and 53.48).
 
 ## Getting started
 

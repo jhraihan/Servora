@@ -305,7 +305,20 @@ def decide_verification(*, document_id, reviewer_id, approve,
     ])
 
     _sync_verification_flags(document.provider_id)
+    _recompute_trust(document.provider_id)
     return document
+
+
+def _recompute_trust(provider_id):
+    from apps.trust import engine
+    from apps.trust.models import TrustSnapshot
+
+    transaction.on_commit(
+        lambda: engine.recompute(
+            provider_id,
+            trigger=TrustSnapshot.Trigger.VERIFICATION_DECIDED,
+        )
+    )
 
 
 def _sync_verification_flags(provider_id):

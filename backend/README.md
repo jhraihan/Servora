@@ -4,14 +4,15 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M3 Providers — complete.** 192 tests passing.
+**M4 Trust engine — complete.** 277 tests passing.
 
 | Milestone | State |
 |---|---|
 | M1 Foundation (auth, OTP, roles) | Done |
 | M2 Catalogue (services, locations, seed) | Done |
 | M3 Providers (profiles, areas, availability, verification) | Done |
-| M4 Trust engine | Next |
+| M4 Trust engine (six factors, snapshots, audit) | Done |
+| M5 Discovery (search, filters, ranking) | Next |
 
 ## Running it
 
@@ -38,7 +39,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 192
+python -m pytest              # all 277
 python -m pytest -k otp       # one area
 ```
 
@@ -103,6 +104,15 @@ Admin-only:
 | GET | `/api/v1/admin/verifications/` | Pending queue |
 | POST | `/api/v1/admin/verifications/{id}/decide/` | Approve or reject |
 
+## Endpoints in M4
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/v1/providers/{id}/trust/` | Public | Full six-factor breakdown |
+| GET | `/api/v1/provider/trust-history/` | Provider | Own score over time |
+| GET | `/api/v1/admin/trust-audit/{id}/` | Admin | Snapshots with factor inputs |
+| POST | `/api/v1/admin/trust-recompute/{id}/` | Admin | Force a recompute |
+
 In development the OTP is **printed to the server log** rather than sent —
 there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
 
@@ -114,6 +124,7 @@ apps/common/         base models, exceptions, pagination, throttling
 apps/accounts/       User, profiles, OTP, JWT, roles
 apps/catalogue/      ServiceCategory, Service, Location, seed data
 apps/providers/      offerings, service areas, availability, verification
+apps/trust/          factors.py (pure math), engine.py (DB), TrustSnapshot
 
 # within each app:
   models.py          persistence only, no business rules
@@ -143,6 +154,7 @@ Phase 1 has no Celery or Redis. Recurring work runs as management commands
 python manage.py purge_otps          # expired OTP rows
 python manage.py purge_documents     # verification files past retention
 python manage.py seed_catalogue      # idempotent; safe to re-run
+python manage.py recompute_all_trust # nightly: time-decay keeps moving
 ```
 
 Register with Task Scheduler locally, cron in production — see PRD §11.3
@@ -176,6 +188,23 @@ and §11.5.
 - **Every provider-owned endpoint scopes by `provider_id` in the query**, not
   just by object id, so one provider cannot read or mutate another's rows.
   The 404-on-foreign-object behaviour is tested per endpoint.
+- **`apps/trust/factors.py` is pure math with no database access.** That is
+  what lets the same code be verified against `docs/verify_trust_math.py`.
+  Given the PRD section 7.4 inputs it reproduces base scores of 84.19 and
+  53.48 exactly, asserted by two tests.
+- **F4 and F6 currently use fallbacks.** Bookings (M6) and reviews (M7) do
+  not exist yet, so `_gather_cancellations` treats every cancellation as
+  48-hour notice and `_gather_reviews` returns nothing, leaving F6 at the
+  platform prior of 80. Both read real rows automatically once those models
+  land — the getattr checks in `engine.py` are the seam.
+- **Trust score and tier are separate concepts.** Score drives ranking; tier
+  communicates confidence. A provider can score 84 and still sit in "Rising"
+  because the tier gate needs 10 completed jobs. Collapsing them would
+  reintroduce the small-sample problem the whole design exists to avoid.
+- **`TrustSnapshot` is append-only** — `AppendOnlyModel` raises on save to an
+  existing row and on delete. Every score is reconstructible from its
+  recorded factors and `algo_version`, which is what makes the number
+  defensible when a provider disputes it.
 - **Locations are a three-level tree** (city > thana > area) with a centroid
   on every node. `Location.descendant_ids()` expands downward, so a provider
   serving "Dhanmondi" matches a request in "Dhanmondi 27". Proximity sorting
