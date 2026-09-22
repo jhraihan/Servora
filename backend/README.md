@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M5 Discovery — complete.** 303 tests passing.
+**M6 Booking — complete.** 373 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -13,7 +13,8 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 | M3 Providers (profiles, areas, availability, verification) | Done |
 | M4 Trust engine (six factors, snapshots, audit) | Done |
 | M5 Discovery (search, filters, trust ranking) | Done |
-| M6 Booking (request lifecycle, state machine) | Next |
+| M6 Booking (request lifecycle, state machine) | Done |
+| M7 Reviews (double-blind, trust feedback) | Next |
 
 ## Running it
 
@@ -40,7 +41,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 303
+python -m pytest              # all 373
 python -m pytest -k otp       # one area
 ```
 
@@ -127,6 +128,35 @@ Filters: `service` `category` `location` `min_trust` `tier` `verified_only`
 Malformed filter values are ignored rather than rejected, so a bad query
 string degrades to a broader result set instead of a 400.
 
+## Endpoints in M6
+
+Customer:
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/api/v1/requests/` | Create and list own requests |
+| GET | `/api/v1/requests/{id}/` | With provider responses |
+| POST | `/api/v1/requests/{id}/withdraw/` | Close an open request |
+| POST | `/api/v1/bookings/{id}/confirm/` | Confirm completion |
+| POST | `/api/v1/bookings/{id}/dispute/` | Open a dispute |
+
+Provider:
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/provider/inbox/` | Eligible open requests |
+| POST | `/api/v1/requests/{id}/respond/` | Accept or decline |
+| POST | `/api/v1/bookings/{id}/start/` | Mark in progress |
+| POST | `/api/v1/bookings/{id}/complete/` | Record final price |
+
+Either party:
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/bookings/` | Role-scoped, `?state=` |
+| GET | `/api/v1/bookings/{id}/` | With full event timeline |
+| POST | `/api/v1/bookings/{id}/cancel/` | Reason required |
+
 In development the OTP is **printed to the server log** rather than sent —
 there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
 
@@ -139,6 +169,7 @@ apps/accounts/       User, profiles, OTP, JWT, roles
 apps/catalogue/      ServiceCategory, Service, Location, seed data
 apps/providers/      offerings, service areas, availability, verification
 apps/trust/          factors.py (pure math), engine.py (DB), TrustSnapshot
+apps/bookings/       ServiceRequest, Booking, BookingEvent, state_machine.py
 
 # within each app:
   models.py          persistence only, no business rules
@@ -169,6 +200,8 @@ python manage.py purge_otps          # expired OTP rows
 python manage.py purge_documents     # verification files past retention
 python manage.py seed_catalogue      # idempotent; safe to re-run
 python manage.py recompute_all_trust # nightly: time-decay keeps moving
+python manage.py expire_requests     # close requests unanswered past 24h
+python manage.py auto_confirm        # confirm jobs 72h after completion
 ```
 
 Register with Task Scheduler locally, cron in production — see PRD §11.3
@@ -206,11 +239,21 @@ and §11.5.
   what lets the same code be verified against `docs/verify_trust_math.py`.
   Given the PRD section 7.4 inputs it reproduces base scores of 84.19 and
   53.48 exactly, asserted by two tests.
-- **F4 and F6 currently use fallbacks.** Bookings (M6) and reviews (M7) do
-  not exist yet, so `_gather_cancellations` treats every cancellation as
-  48-hour notice and `_gather_reviews` returns nothing, leaving F6 at the
-  platform prior of 80. Both read real rows automatically once those models
-  land — the getattr checks in `engine.py` are the seam.
+- **F4 now reads real bookings; F6 still uses the prior.** Since M6,
+  `_gather_cancellations` walks actual `Booking` rows and derives notice
+  hours from `scheduled_for - cancelled_at`. `_gather_reviews` still returns
+  nothing until M7, leaving F6 at the platform prior of 80.
+- **Every booking state change goes through `_transition`**, which validates
+  against `state_machine.ALLOWED_TRANSITIONS`, writes a `BookingEvent`, and
+  saves in one transaction. An illegal move raises `InvalidStateTransition`
+  (HTTP 409), never a 500. A test walks all 49 state pairs and asserts the
+  39 illegal ones raise.
+- **`BookingEvent` is append-only** like `TrustSnapshot`, so the timeline
+  shown to a customer cannot be rewritten after the fact.
+- **Accepting a job lowers trust until it is completed.** Acceptance
+  increments `jobs_accepted` immediately while `jobs_completed` only moves on
+  confirmation, so F3 dips in between. That is intended: a provider who
+  accepts and never finishes should not look good.
 - **Trust score and tier are separate concepts.** Score drives ranking; tier
   communicates confidence. A provider can score 84 and still sit in "Rising"
   because the tier gate needs 10 completed jobs. Collapsing them would
