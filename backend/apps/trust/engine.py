@@ -76,9 +76,9 @@ def _gather_reviews(provider):
     now = timezone.now()
     return [
         (float(review.rating), max((now - review.created_at).days, 0))
-        for review in reviews.filter(is_hidden=False).only(
-            "rating", "created_at"
-        )
+        for review in reviews.filter(
+            is_hidden=False, published_at__isnull=False,
+        ).only("rating", "created_at")
     ]
 
 

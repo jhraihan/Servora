@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M6 Booking — complete.** 373 tests passing.
+**M7 Reviews — complete.** 414 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -14,7 +14,8 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 | M4 Trust engine (six factors, snapshots, audit) | Done |
 | M5 Discovery (search, filters, trust ranking) | Done |
 | M6 Booking (request lifecycle, state machine) | Done |
-| M7 Reviews (double-blind, trust feedback) | Next |
+| M7 Reviews (double-blind, trust feedback) | Done |
+| M8 Money (cash settlement, commission, earnings) | Next |
 
 ## Running it
 
@@ -41,7 +42,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 373
+python -m pytest              # all 414
 python -m pytest -k otp       # one area
 ```
 
@@ -157,6 +158,19 @@ Either party:
 | GET | `/api/v1/bookings/{id}/` | With full event timeline |
 | POST | `/api/v1/bookings/{id}/cancel/` | Reason required |
 
+## Endpoints in M7
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/v1/providers/{id}/reviews/` | Public | Published, unhidden only |
+| GET/POST | `/api/v1/reviews/` | Customer | Own reviews; create one |
+| PATCH | `/api/v1/reviews/{id}/` | Customer | Within 24h of posting |
+| POST | `/api/v1/reviews/{id}/reply/` | Provider | One reply per review |
+| GET | `/api/v1/provider/reviews/` | Provider | Reviews received |
+| POST | `/api/v1/provider/rate-customer/` | Provider | The other blind half |
+| POST | `/api/v1/admin/reviews/{id}/hide/` | Admin | Reason required |
+| POST | `/api/v1/admin/reviews/{id}/unhide/` | Admin | |
+
 In development the OTP is **printed to the server log** rather than sent —
 there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
 
@@ -170,6 +184,7 @@ apps/catalogue/      ServiceCategory, Service, Location, seed data
 apps/providers/      offerings, service areas, availability, verification
 apps/trust/          factors.py (pure math), engine.py (DB), TrustSnapshot
 apps/bookings/       ServiceRequest, Booking, BookingEvent, state_machine.py
+apps/reviews/        Review, ProviderReply, CustomerRating, ReviewEdit
 
 # within each app:
   models.py          persistence only, no business rules
@@ -202,6 +217,7 @@ python manage.py seed_catalogue      # idempotent; safe to re-run
 python manage.py recompute_all_trust # nightly: time-decay keeps moving
 python manage.py expire_requests     # close requests unanswered past 24h
 python manage.py auto_confirm        # confirm jobs 72h after completion
+python manage.py reveal_reviews      # publish reviews past the 14-day window
 ```
 
 Register with Task Scheduler locally, cron in production — see PRD §11.3
@@ -239,10 +255,21 @@ and §11.5.
   what lets the same code be verified against `docs/verify_trust_math.py`.
   Given the PRD section 7.4 inputs it reproduces base scores of 84.19 and
   53.48 exactly, asserted by two tests.
-- **F4 now reads real bookings; F6 still uses the prior.** Since M6,
-  `_gather_cancellations` walks actual `Booking` rows and derives notice
-  hours from `scheduled_for - cancelled_at`. `_gather_reviews` still returns
-  nothing until M7, leaving F6 at the platform prior of 80.
+- **All six trust factors now run on real data.** F4 reads actual `Booking`
+  rows for notice hours; F6 reads published, unhidden `Review` rows. No
+  factor uses a placeholder any more.
+- **Reviews are double-blind.** A review stays unpublished until the provider
+  also rates the customer, or until the 14-day `reveal_deadline` passes and
+  `reveal_reviews` publishes it. This is the review-extortion countermeasure
+  from PRD 7.5 — neither side can condition their rating on the other's.
+- **Unpublished reviews do not move trust.** `_gather_reviews` filters on
+  `published_at__isnull=False`, so a score cannot shift because of a review
+  nobody can see yet. There is a test asserting the score is unchanged.
+- **Hidden reviews are excluded from trust and from the public list.**
+  Verified live: hiding a 5-star review moved F6 from 83.3 back to the
+  platform prior of 80.0.
+- **Public reviews show an abbreviated customer name** ("Rumana A.", not the
+  full name), so leaving an honest review does not expose the reviewer.
 - **Every booking state change goes through `_transition`**, which validates
   against `state_machine.ALLOWED_TRANSITIONS`, writes a `BookingEvent`, and
   saves in one transaction. An illegal move raises `InvalidStateTransition`

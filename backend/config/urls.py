@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/v1/", include("apps.providers.urls")),
     path("api/v1/", include("apps.trust.urls")),
     path("api/v1/", include("apps.bookings.urls")),
+    path("api/v1/", include("apps.reviews.urls")),
     path("api/v1/auth/refresh/", TokenRefreshView.as_view(),
          name="token-refresh"),
 ]
