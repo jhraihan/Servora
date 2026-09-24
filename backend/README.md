@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M7 Reviews — complete.** 414 tests passing.
+**M8 Money — complete.** 463 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -15,7 +15,8 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 | M5 Discovery (search, filters, trust ranking) | Done |
 | M6 Booking (request lifecycle, state machine) | Done |
 | M7 Reviews (double-blind, trust feedback) | Done |
-| M8 Money (cash settlement, commission, earnings) | Next |
+| M8 Money (cash settlement, commission, earnings) | Done |
+| M9 Frontend (React client) | Next |
 
 ## Running it
 
@@ -42,7 +43,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 414
+python -m pytest              # all 463
 python -m pytest -k otp       # one area
 ```
 
@@ -171,6 +172,18 @@ Either party:
 | POST | `/api/v1/admin/reviews/{id}/hide/` | Admin | Reason required |
 | POST | `/api/v1/admin/reviews/{id}/unhide/` | Admin | |
 
+## Endpoints in M8
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/v1/payments/` | User | Role-scoped; customers never see commission |
+| GET | `/api/v1/provider/earnings/` | Provider | `?period=day\|week\|month&start=&end=` |
+| GET | `/api/v1/provider/ledger/` | Provider | `?kind=` |
+| GET | `/api/v1/provider/dashboard/` | Provider | Trust, requests, bookings, earnings |
+| GET | `/api/v1/admin/payments/flagged/` | Admin | Amount mismatches awaiting review |
+| POST | `/api/v1/admin/payments/{id}/resolve/` | Admin | Settle at a decided amount |
+| POST | `/api/v1/admin/providers/{id}/settlements/` | Admin | Provider paid what they owe |
+
 In development the OTP is **printed to the server log** rather than sent —
 there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
 
@@ -185,6 +198,7 @@ apps/providers/      offerings, service areas, availability, verification
 apps/trust/          factors.py (pure math), engine.py (DB), TrustSnapshot
 apps/bookings/       ServiceRequest, Booking, BookingEvent, state_machine.py
 apps/reviews/        Review, ProviderReply, CustomerRating, ReviewEdit
+apps/payments/       Payment, LedgerEntry, earnings, reconciliation
 
 # within each app:
   models.py          persistence only, no business rules
@@ -218,6 +232,7 @@ python manage.py recompute_all_trust # nightly: time-decay keeps moving
 python manage.py expire_requests     # close requests unanswered past 24h
 python manage.py auto_confirm        # confirm jobs 72h after completion
 python manage.py reveal_reviews      # publish reviews past the 14-day window
+python manage.py reconcile_earnings  # exits 1 if any ledger disagrees
 ```
 
 Register with Task Scheduler locally, cron in production — see PRD §11.3
@@ -268,6 +283,30 @@ and §11.5.
 - **Hidden reviews are excluded from trust and from the public list.**
   Verified live: hiding a 5-star review moved F6 from 83.3 back to the
   platform prior of 80.0.
+- **The ledger is signed, append-only, and money never leaves Decimal.** A
+  cash job writes `EARNING +2000`, `COMMISSION -240`, and `CASH_RETAINED
+  -2000`; the balance of -240 is what the provider owes the platform. An
+  online payment in Phase 2 simply omits `CASH_RETAINED`, so the same model
+  covers both without a migration (FR-7.5).
+- **Payments are recorded inside the booking's confirmation transaction**,
+  not in `on_commit`. A completed booking and its payment either both exist
+  or neither does. Trust recomputation stays in `on_commit` because it may
+  fail independently without leaving money in an inconsistent state.
+- **A disputed amount never enters the ledger.** When the provider-recorded
+  and customer-confirmed amounts differ, the payment is flagged and no
+  entries are written until an admin resolves it with a note.
+- **Commission is rounded half-up to the paisa and the rate is snapshotted
+  on the payment**, so changing `PLATFORM_COMMISSION_PERCENT` never rewrites
+  past earnings.
+- **Idempotency is enforced by the database, not just the code.** Partial
+  unique constraints allow one cash payment per booking and one accrual of
+  each kind per booking; a second insert raises `IntegrityError`.
+- **Money leaves the API as strings.** DRF's encoder turns a raw `Decimal`
+  into a float, so summaries go through `DecimalField` serializers.
+- **`reconcile_earnings` catches what append-only cannot.** `save()` and
+  `delete()` are blocked on ledger rows, but a queryset `.update()` bypasses
+  both. The reconciler compares the ledger against payments and exits
+  non-zero on any difference, so a cron job or CI step fails loudly.
 - **Public reviews show an abbreviated customer name** ("Rumana A.", not the
   full name), so leaving an honest review does not expose the reviewer.
 - **Every booking state change goes through `_transition`**, which validates

@@ -350,9 +350,12 @@ def confirm_completion(*, booking_id, customer_id, confirmed_price=None):
 
 
 def _on_completed(booking):
+    from apps.payments.services import record_completion_payment
+
     ProviderProfile.objects.filter(pk=booking.provider_id).update(
         jobs_completed=F("jobs_completed") + 1,
     )
+    record_completion_payment(booking_id=booking.pk)
     _recompute_trust(booking.provider_id, trigger="booking_completed")
 
 
