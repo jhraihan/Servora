@@ -140,7 +140,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 focus:outline-none sm:py-10">
+      <main id="main" tabIndex={-1} className="mx-auto min-h-[calc(100svh-4rem)] w-full max-w-6xl flex-1 px-4 py-6 focus:outline-none sm:py-10">
         <Outlet />
       </main>
 

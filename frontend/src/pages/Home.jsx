@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import LocationSelect from "../components/LocationSelect";
 import { Button, ErrorMessage, PageLoader } from "../components/ui";
 import { useAllServices, useCategories } from "../hooks/useCatalogue";
+import HomeHero from "./HomeHero";
 
 const ICONS = {
   zap: "⚡", droplet: "💧", wind: "❄️", monitor: "💻",
@@ -42,15 +43,7 @@ export default function Home() {
 
   return (
     <div className="space-y-12">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-800 to-brand-600 px-5 py-10 text-white sm:px-10 sm:py-14">
-        <p className="text-sm font-semibold uppercase tracking-wider text-brand-100">Dhaka&apos;s verified tradespeople</p>
-        <h1 className="mt-2 max-w-2xl text-3xl font-bold leading-tight sm:text-5xl">
-          Find a technician you can actually trust.
-        </h1>
-        <p className="mt-3 max-w-xl text-brand-100">
-          Electricians, plumbers, AC technicians and more — ranked by what they have really done, not by who shouts loudest.
-        </p>
-
+      <HomeHero>
         <form onSubmit={search} className="mt-8 grid gap-3 rounded-2xl bg-white p-3 text-slate-800 shadow-lg sm:grid-cols-[1fr_1fr_auto]">
           <div>
             <label htmlFor="home-service" className="sr-only">Service</label>
@@ -69,7 +62,7 @@ export default function Home() {
           </div>
           <Button type="submit" size="lg">Find providers</Button>
         </form>
-      </section>
+      </HomeHero>
 
       <section aria-labelledby="categories-heading">
         <div className="mb-4 flex items-end justify-between">

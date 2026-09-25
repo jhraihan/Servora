@@ -54,7 +54,7 @@ test("public pages meet WCAG 2.1 AA", async ({ page }) => {
   await scan(page, "provider profile with trust factors open");
 });
 
-test("keyboard users can skip the header and always see focus", async ({ page }) => {
+test("keyboard users can skip the header and see where focus is", async ({ page }) => {
   await page.goto("/providers");
   await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: "Skip to main content" });

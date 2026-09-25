@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { BrowserRouter, useRoutes } from "react-router-dom";
 
 import Layout, { RequireRole } from "./components/Layout";
 import { Button, EmptyState, PageLoader } from "./components/ui";
@@ -39,7 +39,7 @@ function NotFound() {
   return <EmptyState title="Page not found" body="That page does not exist or has moved." action={<Button to="/">Go home</Button>} />;
 }
 
-const router = createBrowserRouter([
+const routes = [
   {
     element: <Layout />,
     children: [
@@ -65,8 +65,16 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFound /> },
     ],
   },
-]);
+];
+
+function AppRoutes() {
+  return useRoutes(routes);
+}
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
 }
