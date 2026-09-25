@@ -56,6 +56,22 @@ describe("api client", () => {
     expect(results.map((r) => r.url)).toEqual(["/api/v1/a/", "/api/v1/b/", "/api/v1/c/"]);
   });
 
+  it("refreshes before the first call after a reload instead of taking a 401", async () => {
+    useAuthStore.setState({ access: null });
+    fetchMock.mockImplementation((url, init) => {
+      if (url.endsWith("/auth/refresh/")) return respond(200, { access: "new-access", refresh: "new-refresh" });
+      if (init.headers.Authorization === "Bearer new-access") return respond(200, { url });
+      return respond(401, { error: { code: "not_authenticated", message: "no token" } });
+    });
+
+    const results = await Promise.all([request("/a/"), request("/b/")]);
+
+    const statuses = await Promise.all(fetchMock.mock.results.map((r) => r.value.then((res) => res.status)));
+    expect(statuses).not.toContain(401);
+    expect(fetchMock.mock.calls.filter(([url]) => url.endsWith("/auth/refresh/"))).toHaveLength(1);
+    expect(results.map((r) => r.url)).toEqual(["/api/v1/a/", "/api/v1/b/"]);
+  });
+
   it("clears the session when the refresh token is rejected", async () => {
     fetchMock.mockImplementation((url) =>
       url.endsWith("/auth/refresh/")

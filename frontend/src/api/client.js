@@ -92,7 +92,9 @@ export function refreshSession() {
 }
 
 export async function request(path, { method = "GET", body, form, auth = true } = {}) {
-  const token = auth ? useAuthStore.getState().access : null;
+  const { access, refresh } = useAuthStore.getState();
+  let token = auth ? access : null;
+  if (auth && !token && refresh) token = await refreshSession();
   let { response, data } = await send(path, { method, body, form, token });
 
   if (response.status === 401 && auth && useAuthStore.getState().refresh) {
