@@ -11,7 +11,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   fullyParallel: false,
   workers: 1,
-  reporter: [["list"]],
+  reporter: process.env.CI ? [["github"], ["list"]] : [["list"]],
   use: {
     baseURL: `http://127.0.0.1:${FRONTEND_PORT}`,
     viewport: { width: 360, height: 740 },
