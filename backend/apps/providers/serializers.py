@@ -118,19 +118,31 @@ class VerificationUploadSerializer(serializers.Serializer):
     file = serializers.FileField()
 
     MAX_BYTES = 5 * 1024 * 1024
-    ALLOWED_TYPES = {"image/jpeg", "image/png", "application/pdf"}
+    FORMATS = (
+        ({"jpg", "jpeg"}, b"\xff\xd8\xff"),
+        ({"png"}, b"\x89PNG\r\n\x1a\n"),
+        ({"pdf"}, b"%PDF-"),
+    )
 
     def validate_file(self, value):
         if value.size > self.MAX_BYTES:
             raise serializers.ValidationError(
                 "File must be 5 MB or smaller."
             )
-        content_type = getattr(value, "content_type", None)
-        if content_type and content_type not in self.ALLOWED_TYPES:
-            raise serializers.ValidationError(
-                "Upload a JPEG, PNG or PDF."
-            )
-        return value
+
+        extension = value.name.rsplit(".", 1)[-1].lower() \
+            if "." in value.name else ""
+        head = value.read(16)
+        value.seek(0)
+
+        for extensions, signature in self.FORMATS:
+            if extension in extensions and head.startswith(signature):
+                return value
+
+        raise serializers.ValidationError(
+            "Upload a genuine JPEG, PNG or PDF. The file's contents do not "
+            "match its type."
+        )
 
 
 class VerificationDecisionSerializer(serializers.Serializer):

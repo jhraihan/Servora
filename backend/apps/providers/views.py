@@ -7,6 +7,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from apps.common.exceptions import NotFound
@@ -300,6 +301,8 @@ class VerificationDecisionView(APIView):
 
 class ProviderSearchView(ListAPIView):
     permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "search"
     serializer_class = ProviderSearchResultSerializer
 
     def get_queryset(self):

@@ -220,3 +220,69 @@ def test_throttle_counts_attempts_not_identifiers(client, user):
     blocked = client.post(url, {"phone": PHONE, "password": PASSWORD},
                           format="json")
     assert blocked.status_code == 429
+
+
+def test_login_throttle_cannot_be_bypassed_with_forwarded_for(client, user):
+    url = reverse("accounts:login")
+    for i in range(5):
+        client.post(url, {"phone": PHONE, "password": "wrongpass"},
+                    format="json", HTTP_X_FORWARDED_FOR="203.0.113.%d" % i)
+
+    spoofed = client.post(url, {"phone": PHONE, "password": PASSWORD},
+                          format="json", HTTP_X_FORWARDED_FOR="198.51.100.77")
+    assert spoofed.status_code == 429
+
+
+@pytest.fixture
+def behind_one_proxy(settings):
+    settings.REST_FRAMEWORK = {**settings.REST_FRAMEWORK, "NUM_PROXIES": 1}
+
+
+def test_behind_nginx_only_the_proxy_appended_address_counts(
+        client, user, behind_one_proxy):
+    url = reverse("accounts:login")
+    for i in range(5):
+        client.post(url, {"phone": PHONE, "password": "wrongpass"},
+                    format="json",
+                    HTTP_X_FORWARDED_FOR="203.0.113.%d, 192.0.2.10" % i)
+
+    same_client = client.post(url, {"phone": PHONE, "password": PASSWORD},
+                              format="json",
+                              HTTP_X_FORWARDED_FOR="198.51.100.1, 192.0.2.10")
+    assert same_client.status_code == 429
+
+
+def test_behind_nginx_different_clients_keep_separate_budgets(
+        client, user, behind_one_proxy):
+    url = reverse("accounts:login")
+    for _ in range(5):
+        client.post(url, {"phone": PHONE, "password": "wrongpass"},
+                    format="json", HTTP_X_FORWARDED_FOR="192.0.2.10")
+
+    other_client = client.post(url, {"phone": PHONE, "password": PASSWORD},
+                               format="json",
+                               HTTP_X_FORWARDED_FOR="192.0.2.99")
+    assert other_client.status_code == 200
+
+
+def test_registration_is_rate_limited_per_ip(client):
+    url = reverse("accounts:register")
+    for n in range(10):
+        resp = client.post(url, {"email": "user%d@example.com" % n,
+                                 "password": PASSWORD}, format="json")
+        assert resp.status_code == 201
+
+    blocked = client.post(url, {"email": "user99@example.com",
+                                "password": PASSWORD}, format="json")
+    assert blocked.status_code == 429
+
+
+def test_otp_sending_is_rate_limited_per_ip_across_numbers(client):
+    url = reverse("accounts:otp-send")
+    for n in range(10):
+        resp = client.post(url, {"phone": "+88017123456%02d" % n},
+                           format="json")
+        assert resp.status_code == 200
+
+    blocked = client.post(url, {"phone": "+8801812345678"}, format="json")
+    assert blocked.status_code == 429

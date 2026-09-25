@@ -329,3 +329,10 @@ def test_search_query_count_is_constant(django_assert_num_queries, service,
         ProviderSearchResultSerializer(
             list(search.search_providers()), many=True,
         ).data
+
+
+def test_search_is_rate_limited_per_ip(anon):
+    url = reverse("providers:search")
+    for _ in range(100):
+        assert anon.get(url).status_code == 200
+    assert anon.get(url).status_code == 429

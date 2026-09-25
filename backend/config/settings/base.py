@@ -17,6 +17,7 @@ env = environ.Env(
     JWT_REFRESH_DAYS=(int, 14),
     PLATFORM_COMMISSION_PERCENT=(int, 12),
     TRUST_ALGO_VERSION=(str, "v1.0"),
+    TRUSTED_PROXY_COUNT=(int, 0),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -124,6 +125,13 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.StandardPagination",
     "PAGE_SIZE": 20,
     "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
+    "NUM_PROXIES": env("TRUSTED_PROXY_COUNT"),
+    "DEFAULT_THROTTLE_RATES": {
+        "search": "100/min",
+        "register": "10/hour",
+        "otp_send": "10/hour",
+        "otp_verify": "30/hour",
+    },
 }
 
 SIMPLE_JWT = {

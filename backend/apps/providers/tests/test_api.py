@@ -358,7 +358,7 @@ def test_provider_sees_own_documents_without_file_path(provider_client):
 
 
 def _fake_file(name="doc.jpg"):
-    return SimpleUploadedFile(name, b"fake-bytes", content_type="image/jpeg")
+    return SimpleUploadedFile(name, JPEG_BYTES, content_type="image/jpeg")
 
 
 def test_patch_offering_price_succeeds(provider_client, service):
@@ -425,3 +425,44 @@ def test_patch_offering_deactivates(provider_client, service):
     )
     assert resp.status_code == 200
     assert resp.data["is_active"] is False
+
+
+JPEG_BYTES = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00" + b"\x00" * 32
+PNG_BYTES = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
+PDF_BYTES = b"%PDF-1.7\n" + b"\x00" * 32
+
+
+@pytest.mark.parametrize("name,body,content_type", [
+    ("nid.jpg", JPEG_BYTES, "image/jpeg"),
+    ("nid.png", PNG_BYTES, "image/png"),
+    ("cert.pdf", PDF_BYTES, "application/pdf"),
+])
+def test_genuine_documents_are_accepted(provider_client, name, body,
+                                        content_type):
+    resp = provider_client.post(
+        reverse("providers:my-verification"),
+        {"document_type": "nid_front",
+         "file": SimpleUploadedFile(name, body, content_type=content_type)},
+        format="multipart",
+    )
+    assert resp.status_code == 201
+
+
+@pytest.mark.parametrize("name,body", [
+    ("nid.jpg", b"<html><script>alert(1)</script></html>"),
+    ("nid.jpg", b"MZ\x90\x00" + b"\x00" * 32),
+    ("nid.png", b"<svg xmlns='http://www.w3.org/2000/svg'></svg>"),
+    ("nid.pdf", JPEG_BYTES),
+])
+def test_disguised_files_are_rejected(provider_client, name, body):
+    content_type = {"jpg": "image/jpeg", "png": "image/png",
+                    "pdf": "application/pdf"}[name.rsplit(".", 1)[1]]
+    resp = provider_client.post(
+        reverse("providers:my-verification"),
+        {"document_type": "nid_front",
+         "file": SimpleUploadedFile(name, body, content_type=content_type)},
+        format="multipart",
+    )
+    assert resp.status_code == 400
+    from apps.providers.models import VerificationDocument
+    assert not VerificationDocument.objects.exists()

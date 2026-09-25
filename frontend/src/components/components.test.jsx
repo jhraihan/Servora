@@ -100,7 +100,7 @@ describe("ProviderCard", () => {
 
   function renderCard(p = provider) {
     return render(
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter>
         <ProviderCard provider={p} serviceId={13} />
       </MemoryRouter>,
     );
