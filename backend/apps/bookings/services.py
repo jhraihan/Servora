@@ -195,7 +195,7 @@ def respond_to_request(*, request_id, provider_id, accept, reason="",
         request=request, provider=provider, decision=decision,
         reason=reason, response_seconds=elapsed,
     )
-    _refresh_median_response(provider_id)
+    refresh_median_response(provider_id)
 
     if not accept:
         logger.info("Provider %s declined request %s", provider_id, request.id)
@@ -247,7 +247,7 @@ def _accept_request(request, provider, scheduled_for, price):
     return booking
 
 
-def _refresh_median_response(provider_id):
+def refresh_median_response(provider_id):
     seconds = list(
         ProviderResponse.objects
         .filter(provider_id=provider_id)
