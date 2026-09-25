@@ -356,3 +356,58 @@ def test_request_detail_lists_responses(customer_client, provider_client,
     )
     assert len(resp.data["responses"]) == 1
     assert resp.data["responses"][0]["decision"] == "declined"
+
+
+def test_inbox_withholds_the_address_before_acceptance(
+        provider_client, customer_client, provider, service, dhanmondi,
+        future_window):
+    _create_request(customer_client, service, dhanmondi, future_window)
+
+    resp = provider_client.get(reverse("bookings:inbox"))
+    row = resp.data[0]
+    assert "address" not in row
+    assert "House 12" not in str(resp.data)
+    assert row["location_detail"]["name"] == "Dhanmondi"
+
+
+def test_customer_still_sees_their_own_address(customer_client, provider,
+                                               service, dhanmondi,
+                                               future_window):
+    created = _create_request(customer_client, service, dhanmondi,
+                              future_window)
+    assert created.data["address"] == "House 12, Road 5"
+
+
+def test_accepted_provider_gets_customer_contact(
+        provider_client, customer_client, provider, service, dhanmondi,
+        future_window):
+    created = _create_request(customer_client, service, dhanmondi,
+                              future_window)
+    accepted = provider_client.post(
+        reverse("bookings:respond", args=[created.data["id"]]),
+        {"accept": True}, format="json",
+    )
+
+    resp = provider_client.get(
+        reverse("bookings:booking-detail", args=[accepted.data["id"]])
+    )
+    assert resp.data["address"] == "House 12, Road 5"
+    assert resp.data["customer_name"] == "Rumana Akter"
+    assert resp.data["customer_phone"] == "+8801912345678"
+
+
+def test_booking_detail_reports_review_progress(
+        provider_client, customer_client, provider, service, dhanmondi,
+        future_window):
+    created = _create_request(customer_client, service, dhanmondi,
+                              future_window)
+    accepted = provider_client.post(
+        reverse("bookings:respond", args=[created.data["id"]]),
+        {"accept": True}, format="json",
+    )
+
+    resp = customer_client.get(
+        reverse("bookings:booking-detail", args=[accepted.data["id"]])
+    )
+    assert resp.data["review_submitted"] is False
+    assert resp.data["customer_rated"] is False

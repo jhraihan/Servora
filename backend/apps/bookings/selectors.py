@@ -50,7 +50,7 @@ def bookings_for(*, customer_id=None, provider_id=None, state=None):
 def booking_detail(booking_id, *, customer_id=None, provider_id=None):
     qs = (
         Booking.objects
-        .select_related("provider", "customer", "request",
+        .select_related("provider", "customer", "customer__user", "request",
                         "request__service", "request__service__category",
                         "request__location")
         .prefetch_related(

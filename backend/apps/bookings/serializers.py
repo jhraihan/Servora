@@ -25,6 +25,13 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
         return obj.responses.count()
 
 
+class InboxRequestSerializer(ServiceRequestSerializer):
+    class Meta(ServiceRequestSerializer.Meta):
+        fields = [f for f in ServiceRequestSerializer.Meta.fields
+                  if f != "address"]
+        read_only_fields = fields
+
+
 class ServiceRequestCreateSerializer(serializers.Serializer):
     service = serializers.IntegerField()
     location = serializers.IntegerField()
@@ -85,10 +92,25 @@ class BookingSerializer(serializers.ModelSerializer):
 
 class BookingDetailSerializer(BookingSerializer):
     events = BookingEventSerializer(many=True, read_only=True)
+    customer_name = serializers.CharField(source="customer.user.full_name",
+                                          read_only=True)
+    customer_phone = serializers.CharField(source="customer.user.phone",
+                                           read_only=True)
+    review_submitted = serializers.SerializerMethodField()
+    customer_rated = serializers.SerializerMethodField()
 
     class Meta(BookingSerializer.Meta):
-        fields = BookingSerializer.Meta.fields + ["events"]
+        fields = BookingSerializer.Meta.fields + [
+            "events", "customer_name", "customer_phone",
+            "review_submitted", "customer_rated",
+        ]
         read_only_fields = fields
+
+    def get_review_submitted(self, obj):
+        return hasattr(obj, "review")
+
+    def get_customer_rated(self, obj):
+        return hasattr(obj, "customer_rating")
 
 
 class CompleteSerializer(serializers.Serializer):

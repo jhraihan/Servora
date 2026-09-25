@@ -12,6 +12,7 @@ from .models import BookingEvent
 from .permissions import IsCustomer
 from .serializers import (
     BookingDetailSerializer, BookingSerializer, CompleteSerializer,
+    InboxRequestSerializer,
     ConfirmSerializer, ProviderResponseSerializer, ReasonSerializer,
     RespondSerializer, ServiceRequestCreateSerializer,
     ServiceRequestSerializer,
@@ -91,7 +92,7 @@ class ProviderInboxView(APIView):
             r for r in selectors.open_requests_for_provider(provider)
             if services.can_provider_respond(r, provider.id)
         ]
-        return Response(ServiceRequestSerializer(eligible, many=True).data)
+        return Response(InboxRequestSerializer(eligible, many=True).data)
 
 
 class RespondView(APIView):
