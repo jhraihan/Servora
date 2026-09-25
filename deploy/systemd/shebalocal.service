@@ -1,0 +1,29 @@
+[Unit]
+Description=ShebaLocal API (gunicorn)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=sheba
+Group=www-data
+RuntimeDirectory=shebalocal
+RuntimeDirectoryMode=0750
+WorkingDirectory=/srv/shebalocal/backend
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+ExecStart=/srv/shebalocal/backend/venv/bin/gunicorn --config /srv/shebalocal/deploy/gunicorn.conf.py
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+Restart=always
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/srv/shebalocal/backend/media /srv/shebalocal/backend/private_media
+
+[Install]
+WantedBy=multi-user.target
