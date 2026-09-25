@@ -61,6 +61,10 @@ def verification_documents_for(provider_id):
     return VerificationDocument.objects.filter(provider_id=provider_id)
 
 
+def verification_document(document_id):
+    return VerificationDocument.objects.filter(pk=document_id).first()
+
+
 def pending_verification_queue():
     return (
         VerificationDocument.objects

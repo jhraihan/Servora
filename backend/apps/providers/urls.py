@@ -34,6 +34,8 @@ urlpatterns = [
 
     path("admin/verifications/", views.VerificationQueueView.as_view(),
          name="verification-queue"),
+    path("admin/verifications/<int:document_id>/file/",
+         views.VerificationFileView.as_view(), name="verification-file"),
     path("admin/verifications/<int:document_id>/decide/",
          views.VerificationDecisionView.as_view(), name="verification-decide"),
 ]

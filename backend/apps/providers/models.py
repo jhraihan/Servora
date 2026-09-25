@@ -9,7 +9,15 @@ from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import ProviderProfile
 from apps.catalogue.models import Location, Service
 from apps.common.models import TimeStampedModel
-from apps.common.storage import private_media_storage
+from apps.common.storage import private_storage
+
+
+CONTENT_TYPES = {
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "pdf": "application/pdf",
+}
 
 
 def verification_document_path(instance, filename):
@@ -187,7 +195,7 @@ class VerificationDocument(TimeStampedModel):
     document_type = models.CharField(max_length=30,
                                      choices=DocumentType.choices)
     file = models.FileField(upload_to=verification_document_path,
-                            storage=private_media_storage)
+                            storage=private_storage)
 
     status = models.CharField(max_length=20, choices=Status.choices,
                               default=Status.PENDING)
@@ -215,6 +223,15 @@ class VerificationDocument(TimeStampedModel):
     @property
     def is_reviewed(self):
         return self.status != self.Status.PENDING
+
+    @property
+    def file_basename(self):
+        return self.file.name.rsplit("/", 1)[-1]
+
+    @property
+    def content_type(self):
+        extension = self.file.name.rsplit(".", 1)[-1].lower()
+        return CONTENT_TYPES.get(extension, "application/octet-stream")
 
 
 class WorkPhoto(TimeStampedModel):

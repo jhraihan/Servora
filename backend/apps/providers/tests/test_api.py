@@ -292,6 +292,43 @@ def test_admin_sees_pending_queue(admin_client, provider):
     assert resp.data["results"][0]["provider_name"] == provider.display_name
 
 
+def test_admin_can_view_the_document_being_verified(admin_client, provider):
+    doc = services.submit_verification_document(
+        provider_id=provider.id, document_type="nid_front",
+        file=_fake_file(),
+    )
+    resp = admin_client.get(reverse("providers:verification-file",
+                                    args=[doc.id]))
+    assert resp.status_code == 200
+    assert resp["Content-Type"] == "image/jpeg"
+    assert b"".join(resp.streaming_content) == JPEG_BYTES
+
+
+def test_document_file_is_refused_to_everyone_else(anon, provider_client,
+                                                   customer_client, provider):
+    doc = services.submit_verification_document(
+        provider_id=provider.id, document_type="nid_front",
+        file=_fake_file(),
+    )
+    url = reverse("providers:verification-file", args=[doc.id])
+    assert anon.get(url).status_code == 401
+    assert provider_client.get(url).status_code == 403
+    assert customer_client.get(url).status_code == 403
+
+
+def test_admin_document_page_renders(admin_user, provider, client):
+    doc = services.submit_verification_document(
+        provider_id=provider.id, document_type="nid_front",
+        file=_fake_file(),
+    )
+    client.force_login(admin_user)
+    resp = client.get(
+        "/admin/providers/verificationdocument/%d/change/" % doc.id)
+    assert resp.status_code == 200
+    assert reverse("providers:verification-file",
+                   args=[doc.id]).encode() in resp.content
+
+
 def test_provider_cannot_approve_own_document(provider_client, provider):
     doc = services.submit_verification_document(
         provider_id=provider.id, document_type="nid_front",

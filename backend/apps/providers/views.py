@@ -2,6 +2,7 @@ from datetime import date as date_cls
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
+from django.http import FileResponse
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -279,6 +280,25 @@ class VerificationQueueView(ListAPIView):
 
     def get_queryset(self):
         return selectors.pending_verification_queue()
+
+
+class VerificationFileView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, document_id):
+        document = selectors.verification_document(document_id)
+        if document is None or not document.file:
+            raise NotFound("Verification document not found.")
+
+        response = FileResponse(document.file.open("rb"),
+                                content_type=document.content_type)
+        response["Content-Disposition"] = 'inline; filename="%s"' % (
+            document.file_basename,
+        )
+        response["Cache-Control"] = "no-store"
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Content-Security-Policy"] = "default-src 'none'; sandbox"
+        return response
 
 
 class VerificationDecisionView(APIView):

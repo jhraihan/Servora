@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import (
     Availability, AvailabilityException, ProviderService, ServiceArea,
@@ -36,7 +38,18 @@ class VerificationDocumentAdmin(admin.ModelAdmin):
                     "reviewed_at"]
     list_filter = ["status", "document_type"]
     search_fields = ["provider__display_name"]
-    readonly_fields = ["file", "created_at", "reviewed_at", "reviewed_by"]
+    exclude = ["file"]
+    readonly_fields = ["document", "created_at", "reviewed_at", "reviewed_by"]
+
+    @admin.display(description="Document")
+    def document(self, obj):
+        if not obj.file:
+            return "No file (purged or never uploaded)"
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">{}</a>',
+            reverse("providers:verification-file", args=[obj.pk]),
+            obj.file_basename,
+        )
 
 @admin.register(WorkPhoto)
 class WorkPhotoAdmin(admin.ModelAdmin):
