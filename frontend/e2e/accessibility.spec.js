@@ -26,6 +26,7 @@ async function register(page, name, phone, roleLabel) {
   await expect(page.getByRole("heading", { name: "Verify your phone" })).toBeVisible();
   await scan(page, "OTP verification");
   await page.getByRole("button", { name: "Skip for now" }).click();
+  await expect(page).not.toHaveURL(/\/register$/);
 }
 
 test("public pages meet WCAG 2.1 AA", async ({ page }) => {

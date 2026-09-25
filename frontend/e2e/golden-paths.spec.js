@@ -22,6 +22,7 @@ async function register(page, { name, phone, password }, roleLabel) {
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByRole("heading", { name: "Verify your phone" })).toBeVisible();
   await page.getByRole("button", { name: "Skip for now" }).click();
+  await expect(page).not.toHaveURL(/\/register$/);
 }
 
 test("customer books and reviews; provider accepts and completes", async ({ browser }) => {
@@ -41,9 +42,11 @@ test("customer books and reviews; provider accepts and completes", async ({ brow
     await provider.getByRole("button", { name: "Add", exact: true }).click();
     await expect(provider.getByText("৳1,800")).toBeVisible();
 
-    await provider.getByText("Dhanmondi", { exact: true }).click();
+    const dhanmondi = provider.getByText("Dhanmondi", { exact: true });
+    await expect(dhanmondi).toBeVisible();
+    await dhanmondi.click();
     await provider.getByRole("button", { name: "Save areas" }).click();
-    await expect(provider.getByText("Saved").first()).toBeVisible();
+    await expect(provider.getByText("Profile setup · 2 of 4 done")).toBeVisible();
 
     for (const day of ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]) {
       await provider.getByLabel(day, { exact: true }).check();
