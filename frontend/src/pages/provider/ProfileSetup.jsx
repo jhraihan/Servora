@@ -140,7 +140,7 @@ function Offerings({ offerings }) {
         {offerings.map((o) => (
           <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
             <div>
-              <p className={`font-medium ${o.isActive ? "text-ink" : "text-slate-400 line-through"}`}>{o.service?.name}</p>
+              <p className={`font-medium ${o.isActive ? "text-ink" : "text-slate-500 line-through"}`}>{o.service?.name}</p>
               {o.priceFlag && <p className="text-xs text-slate-500">{PRICE_FLAG_LABEL[o.priceFlag]}</p>}
             </div>
             <div className="flex items-center gap-2">
@@ -245,7 +245,7 @@ function WeeklyHours({ windows }) {
                 <input type="time" aria-label={`${WEEKDAYS[d.weekday]} end`} className="input w-32 py-1.5" value={d.endTime} onChange={(e) => patch(d.weekday, { endTime: e.target.value })} />
               </div>
             ) : (
-              <span className="text-sm text-slate-400">Off</span>
+              <span className="text-sm text-slate-500">Off</span>
             )}
           </li>
         ))}

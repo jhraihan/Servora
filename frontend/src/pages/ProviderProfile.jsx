@@ -85,7 +85,7 @@ export default function ProviderProfile() {
           ) : (
             <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(calendar.data ?? []).map((day) => (
-                <li key={day.date} className={`rounded-xl border p-3 text-sm ${day.windows.length ? "border-brand-200 bg-brand-50" : "border-slate-200 bg-slate-50 text-slate-400"}`}>
+                <li key={day.date} className={`rounded-xl border p-3 text-sm ${day.windows.length ? "border-brand-200 bg-brand-50" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                   <p className="font-semibold">{WEEKDAYS[(new Date(`${day.date}T00:00:00`).getDay() + 6) % 7].slice(0, 3)}, {formatDate(day.date).split(" ").slice(0, 2).join(" ")}</p>
                   {day.windows.length ? (
                     day.windows.map((w) => (

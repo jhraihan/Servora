@@ -27,7 +27,7 @@ export function TrustBadge({ score, tier, size = "md" }) {
       </span>
       <span className={`font-bold tabular-nums ${big ? "text-base" : "text-xs"}`}>
         {rounded}
-        <span className="font-medium opacity-60">/100</span>
+        <span className="font-medium">/100</span>
       </span>
     </span>
   );
@@ -65,7 +65,7 @@ function Check({ ok, label }) {
           Verified
         </span>
       ) : (
-        <span className="text-slate-400">Not yet</span>
+        <span className="text-slate-500">Not yet</span>
       )}
     </li>
   );
