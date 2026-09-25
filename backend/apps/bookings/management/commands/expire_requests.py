@@ -1,12 +1,11 @@
-from django.core.management.base import BaseCommand
-
 from apps.bookings import services
+from apps.operations.scheduling import ScheduledCommand
 
-class Command(BaseCommand):
+
+class Command(ScheduledCommand):
     help = "Close service requests that went unanswered past their expiry."
+    job_name = "expire_requests"
 
-    def handle(self, *args, **options):
+    def run_job(self, *args, **options):
         expired = services.expire_stale_requests()
-        self.stdout.write(self.style.SUCCESS(
-            "Expired %d request(s)." % expired
-        ))
+        return expired, "Expired %d request(s)." % expired

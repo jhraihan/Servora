@@ -1,9 +1,10 @@
-from django.core.management.base import BaseCommand
-
 from apps.accounts import services
+from apps.operations.scheduling import ScheduledCommand
 
-class Command(BaseCommand):
+
+class Command(ScheduledCommand):
     help = "Purge OTP codes older than the retention window."
+    job_name = "purge_otps"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -11,10 +12,6 @@ class Command(BaseCommand):
             help="Delete codes created more than this many hours ago.",
         )
 
-    def handle(self, *args, **options):
-        deleted = services.purge_expired_otps(
-            older_than_hours=options["hours"]
-        )
-        self.stdout.write(self.style.SUCCESS(
-            "Purged %d OTP row(s)." % deleted
-        ))
+    def run_job(self, *args, **options):
+        deleted = services.purge_expired_otps(older_than_hours=options["hours"])
+        return deleted, "Purged %d OTP row(s)." % deleted

@@ -1,12 +1,11 @@
-from django.core.management.base import BaseCommand
-
 from apps.bookings import services
+from apps.operations.scheduling import ScheduledCommand
 
-class Command(BaseCommand):
+
+class Command(ScheduledCommand):
     help = "Auto-confirm bookings the customer never confirmed."
+    job_name = "auto_confirm"
 
-    def handle(self, *args, **options):
+    def run_job(self, *args, **options):
         confirmed = services.auto_confirm_bookings()
-        self.stdout.write(self.style.SUCCESS(
-            "Auto-confirmed %d booking(s)." % confirmed
-        ))
+        return confirmed, "Auto-confirmed %d booking(s)." % confirmed

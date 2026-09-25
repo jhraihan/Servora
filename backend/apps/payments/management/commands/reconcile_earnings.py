@@ -1,11 +1,13 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 
 from apps.accounts.models import ProviderProfile
+from apps.operations.scheduling import ScheduledCommand
 from apps.payments import services
 
 
-class Command(BaseCommand):
+class Command(ScheduledCommand):
     help = "Check that every provider's ledger reconciles with their bookings."
+    job_name = "reconcile_earnings"
 
     def add_arguments(self, parser):
         parser.add_argument("--provider", type=int,
@@ -14,7 +16,7 @@ class Command(BaseCommand):
                             help="Record payments for completed bookings "
                                  "that have none, then re-check.")
 
-    def handle(self, *args, **options):
+    def run_job(self, *args, **options):
         provider_id = options.get("provider")
 
         if options["fix"]:
@@ -29,8 +31,7 @@ class Command(BaseCommand):
         failures = 0
         for pk in providers.values_list("pk", flat=True):
             checked += 1
-            problems = services.reconcile_provider(pk)
-            for problem in problems:
+            for problem in services.reconcile_provider(pk):
                 failures += 1
                 self.stderr.write("provider %s: %s" % (pk, problem))
 
@@ -39,6 +40,6 @@ class Command(BaseCommand):
                 "%d discrepancy(ies) across %d provider(s)."
                 % (failures, checked)
             )
-        self.stdout.write(self.style.SUCCESS(
+        return checked, (
             "Reconciled %d provider(s): no discrepancies." % checked
-        ))
+        )
