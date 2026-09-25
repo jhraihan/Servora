@@ -3,6 +3,9 @@
 This runbook takes a fresh Ubuntu server to a running ShebaLocal at `https://shebalocal.example.com`.
 Replace that domain everywhere with yours.
 
+For a managed platform instead, where you administer no server at all, see
+[`RENDER.md`](RENDER.md). It is the easier route.
+
 > **Status:** everything in `deploy/` was written and checked on a development machine, but
 > **has not yet been run on a real server.** The parts that were verified are listed under
 > [What has and has not been verified](#what-has-and-has-not-been-verified). Expect to fix small

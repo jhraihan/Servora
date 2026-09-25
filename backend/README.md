@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M10 Harden — complete.** 568 tests passing.
+**M10 Harden — complete.** 569 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -44,7 +44,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 568, about two minutes
+python -m pytest              # all 569, about two minutes
 python -m pytest -k otp       # one area
 ```
 
@@ -303,12 +303,26 @@ Results with 10,018 providers, 200 requests per endpoint, `DEBUG` off:
   which drops the ORDER BY entirely. `selectors.active_categories()`
   re-applies ordering explicitly; without it the landing page rendered
   categories in arbitrary order. Two regression tests cover it.
-- **Verification documents are stored OUTSIDE public media.** They use
-  `apps/common/storage.PrivateMediaStorage`, which writes to
+- **Verification documents are stored OUTSIDE public media.** Locally they
+  use `apps/common/storage.PrivateMediaStorage`, which writes to
   `PRIVATE_MEDIA_ROOT` and raises on `.url()`. An early version used the
   default storage, which put NID scans under `MEDIA_ROOT` where Django (in
   DEBUG) and Nginx (in production) would serve them to anyone who guessed
   the path. Four tests assert the boundary.
+- **Which storage is used is decided at runtime**, through the `private`
+  alias in `STORAGES`. The model field takes a callable rather than a fixed
+  instance, so production can put documents in object storage under a
+  separate, signed prefix without touching the model. `apps/common/tests/
+  test_storage_config.py` asserts the production configuration: documents and
+  photos live under different prefixes, document links are signed and expire
+  within ten minutes, photo links carry no credentials, and nothing
+  overwrites an existing file.
+- **Admins can actually see the document they are approving.**
+  `GET /api/v1/admin/verifications/<id>/file/` streams it, admin-only, with
+  `no-store` and a sandboxing CSP so a PDF cannot run scripts. Django admin
+  links to that endpoint. Before this, the admin page raised
+  `NotImplementedError` from private storage and returned 500, so identity
+  could be approved but never inspected.
 - **`identity_verified` requires BOTH NID sides approved.** Flags are derived
   in `_sync_verification_flags` from approved documents; they are never set
   directly, and no serializer exposes them as writable.

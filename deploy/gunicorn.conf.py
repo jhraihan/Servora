@@ -1,8 +1,15 @@
-wsgi_app = "config.wsgi:application"
-bind = "unix:/run/shebalocal/gunicorn.sock"
-umask = 0o007
+import os
 
-workers = 3
+wsgi_app = "config.wsgi:application"
+
+if os.environ.get("PORT"):
+    bind = "0.0.0.0:%s" % os.environ["PORT"]
+    forwarded_allow_ips = "*"
+else:
+    bind = "unix:/run/shebalocal/gunicorn.sock"
+    umask = 0o007
+
+workers = int(os.environ.get("WEB_CONCURRENCY", 3))
 worker_class = "sync"
 timeout = 30
 graceful_timeout = 30

@@ -1,0 +1,122 @@
+databases:
+  - name: shebalocal-db
+    plan: basic-256mb
+    postgresMajorVersion: "18"
+
+services:
+  - type: web
+    name: shebalocal-api
+    runtime: python
+    plan: starter
+    region: singapore
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate"
+    startCommand: "gunicorn --config ../deploy/gunicorn.conf.py"
+    healthCheckPath: /api/v1/categories/
+    envVars: &backend_env
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shebalocal-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: TRUSTED_PROXY_COUNT
+        value: "1"
+      - key: USE_OBJECT_STORAGE
+        value: "True"
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: S3_PUBLIC_DOMAIN
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+
+  - type: cron
+    name: shebalocal-jobs-frequent
+    runtime: python
+    plan: starter
+    region: singapore
+    rootDir: backend
+    schedule: "*/15 * * * *"
+    buildCommand: "pip install -r requirements.txt"
+    command: "python manage.py run_scheduled_jobs --only expire_requests auto_confirm reveal_reviews purge_otps"
+    envVars: *backend_env
+
+  - type: cron
+    name: shebalocal-jobs-nightly
+    runtime: python
+    plan: starter
+    region: singapore
+    rootDir: backend
+    schedule: "0 21 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    command: "python manage.py run_scheduled_jobs --only recompute_all_trust reconcile_earnings purge_documents"
+    envVars: *backend_env
+
+  - type: web
+    name: shebalocal-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: "npm ci && npm run build"
+    staticPublishPath: dist
+    buildFilter:
+      paths:
+        - frontend/**
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: "public, max-age=31536000, immutable"
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: same-origin
+      - path: /*
+        name: Permissions-Policy
+        value: "camera=(), microphone=(), geolocation=(), payment=()"
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://shebalocal-api.onrender.com/api/*
+      - type: rewrite
+        source: /admin/*
+        destination: https://shebalocal-api.onrender.com/admin/*
+      - type: rewrite
+        source: /static/*
+        destination: https://shebalocal-api.onrender.com/static/*
+      - type: rewrite
+        source: /
+        destination: /index.html
+      - type: rewrite
+        source: /*
+        destination: /app.html

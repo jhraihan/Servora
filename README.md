@@ -86,7 +86,7 @@ migration to one line per call site.
 | M9 Frontend — React client, mobile-first | Done |
 | M10 Harden — security, performance, accessibility, deploy | Done |
 
-Backend: 568 tests. Frontend: 47 unit and component tests, plus Playwright
+Backend: 569 tests. Frontend: 47 unit and component tests, plus Playwright
 runs of both golden paths and a WCAG 2.1 AA accessibility scan of every page,
 in Chromium at a 360px phone viewport. All six trust factors run on real
 platform data, and every provider's ledger reconciles against their bookings.
@@ -110,10 +110,12 @@ added an audit that fails the suite if any API route forgets its permission
 check, and upgraded to Django 5.2 LTS (clearing 37 known vulnerabilities).
 Scheduled jobs record every run, and admins can see a job that has stopped.
 
-The site is not deployed yet. [`deploy/DEPLOY.md`](deploy/DEPLOY.md) is a
-step-by-step runbook with the Nginx, gunicorn, systemd, cron and backup
-configuration; it has been checked locally but not yet run on a real server,
-and it says exactly which parts are unverified. CI (GitHub Actions) runs the
+The site is not deployed yet. There are two routes, both checked locally but
+neither yet run for real, and each says which parts are unverified:
+[`deploy/RENDER.md`](deploy/RENDER.md) for Render, which needs no Linux
+administration and is driven by [`render.yaml`](render.yaml), and
+[`deploy/DEPLOY.md`](deploy/DEPLOY.md) for a plain Ubuntu server with Nginx,
+gunicorn, systemd, cron and backups. CI (GitHub Actions) runs the
 backend suite against PostgreSQL 18, the frontend checks, both golden paths
 with the accessibility scan, and the dependency audits on every push.
 
@@ -155,7 +157,8 @@ requires, are in [PRD §11](docs/ShebaLocal-PRD.pdf) and
 docs/       PRD (PDF + the source that generates it), trust math reference
 backend/    Django project — see backend/README.md
 frontend/   React client — see frontend/README.md
-deploy/     Nginx, gunicorn, systemd, backup scripts — see deploy/DEPLOY.md
+deploy/     server configs, backup scripts, both deployment guides
+render.yaml Render blueprint: database, API, cron jobs, static site
 .github/    CI workflow
 ```
 
@@ -164,5 +167,6 @@ deploy/     Nginx, gunicorn, systemd, backup scripts — see deploy/DEPLOY.md
 - [Product Requirements Document](docs/ShebaLocal-PRD.pdf) — 40 pages, the full spec
 - [`backend/README.md`](backend/README.md) — running it, endpoints, design notes
 - [`frontend/README.md`](frontend/README.md) — running it, checks, accessibility, performance
-- [`deploy/DEPLOY.md`](deploy/DEPLOY.md) — production runbook
+- [`deploy/RENDER.md`](deploy/RENDER.md) — deploying on Render (the simpler route)
+- [`deploy/DEPLOY.md`](deploy/DEPLOY.md) — deploying on your own Ubuntu server
 - [`docs/README.md`](docs/README.md) — how the PRD is generated and verified
