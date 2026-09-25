@@ -16,7 +16,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 | M6 Booking (request lifecycle, state machine) | Done |
 | M7 Reviews (double-blind, trust feedback) | Done |
 | M8 Money (cash settlement, commission, earnings) | Done |
-| M9 Frontend (React client) | Next |
+| M9 Frontend (React client) | Done — see ../frontend |
 
 ## Running it
 
@@ -263,6 +263,12 @@ and §11.5.
 - **`identity_verified` requires BOTH NID sides approved.** Flags are derived
   in `_sync_verification_flags` from approved documents; they are never set
   directly, and no serializer exposes them as writable.
+- **A customer's address is withheld until a provider accepts.** The provider
+  inbox uses `InboxRequestSerializer`, which omits the address and keeps the
+  area. Before this fix the inbox used the customer-facing serializer, so a
+  broadcast request showed the customer's home address to every eligible
+  provider nearby. Once a provider accepts, the booking detail reveals the
+  address, name and phone to that provider only.
 - **Every provider-owned endpoint scopes by `provider_id` in the query**, not
   just by object id, so one provider cannot read or mutate another's rows.
   The 404-on-foreign-object behaviour is tested per endpoint.

@@ -83,11 +83,13 @@ migration to one line per call site.
 | M6 Booking — request lifecycle, state machine | Done |
 | M7 Reviews — double-blind, trust feedback | Done |
 | M8 Money — cash settlement, commission, earnings | Done |
-| M9 Frontend — React client | Next |
-| M10 Harden — security, performance, deploy | Planned |
+| M9 Frontend — React client, mobile-first | Done |
+| M10 Harden — security, performance, deploy | Next |
 
-463 tests passing. All six trust factors run on real platform data, and
-every provider's ledger reconciles against their bookings. The trust engine reproduces both PRD worked examples
+Backend: 467 tests. Frontend: 46 unit and component tests, plus a Playwright
+run of both golden paths in Chromium at a 360px phone viewport. All six trust
+factors run on real platform data, and every provider's ledger reconciles
+against their bookings. The trust engine reproduces both PRD worked examples
 exactly (base scores 84.19 and 53.48), and search ranks by trust rather
 than by price.
 
@@ -111,6 +113,11 @@ cp .env.example .env           # fill in SECRET_KEY and DATABASE_URL
 python manage.py migrate
 python manage.py seed_catalogue
 python manage.py runserver
+
+# frontend, in a second terminal
+cd frontend
+npm install
+npm run dev                    # http://127.0.0.1:5173
 ```
 
 Full setup notes, including the PostgreSQL 15+ schema-grant that `migrate`
@@ -122,11 +129,12 @@ requires, are in [PRD §11](docs/ShebaLocal-PRD.pdf) and
 ```
 docs/       PRD (PDF + the source that generates it), trust math reference
 backend/    Django project — see backend/README.md
-frontend/   React client (not yet started)
+frontend/   React client — see frontend/README.md
 ```
 
 ## Documentation
 
 - [Product Requirements Document](docs/ShebaLocal-PRD.pdf) — 40 pages, the full spec
 - [`backend/README.md`](backend/README.md) — running it, endpoints, design notes
+- [`frontend/README.md`](frontend/README.md) — running it, checks, design notes
 - [`docs/README.md`](docs/README.md) — how the PRD is generated and verified
