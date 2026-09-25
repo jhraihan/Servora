@@ -64,7 +64,7 @@ and asserts every figure printed in the document.
 
 ## Stack
 
-Django 5 · Django REST Framework · PostgreSQL 18 · React 18 (JavaScript) · Vite
+Django 5.2 LTS · Django REST Framework · PostgreSQL 18 · React 18 (JavaScript) · Vite
 
 No Docker, no Celery, no Redis in Phase 1. Recurring work runs as Django
 management commands under Task Scheduler / cron; [PRD §8.5](docs/ShebaLocal-PRD.pdf)
@@ -84,25 +84,49 @@ migration to one line per call site.
 | M7 Reviews — double-blind, trust feedback | Done |
 | M8 Money — cash settlement, commission, earnings | Done |
 | M9 Frontend — React client, mobile-first | Done |
-| M10 Harden — security, performance, deploy | Next |
+| M10 Harden — security, performance, accessibility, deploy | Done |
 
-Backend: 467 tests. Frontend: 46 unit and component tests, plus a Playwright
-run of both golden paths in Chromium at a 360px phone viewport. All six trust
-factors run on real platform data, and every provider's ledger reconciles
-against their bookings. The trust engine reproduces both PRD worked examples
-exactly (base scores 84.19 and 53.48), and search ranks by trust rather
-than by price.
+Backend: 568 tests. Frontend: 47 unit and component tests, plus Playwright
+runs of both golden paths and a WCAG 2.1 AA accessibility scan of every page,
+in Chromium at a 360px phone viewport. All six trust factors run on real
+platform data, and every provider's ledger reconciles against their bookings.
+The trust engine reproduces both PRD worked examples exactly (base scores
+84.19 and 53.48), and search ranks by trust rather than by price.
+
+## Production readiness
+
+| | Result | PRD target |
+|---|---|---|
+| Provider search, p95, 10,018 providers | 100 ms | 400 ms |
+| Provider detail / trust breakdown, p95 | 42 ms / 16 ms | 250 ms |
+| Nightly trust recompute, 10,018 providers | 175 s | 15 min |
+| Landing page LCP, Slow 4G, 4x CPU slowdown | 1.58 s (2.63 s before M10) | 2.5 s |
+| Accessibility | axe-core finds no WCAG 2.1 AA violations on any page | WCAG 2.1 AA |
+| Known vulnerabilities (`pip-audit`, `npm audit`) | 0 | 0 |
+
+The M10 security review fixed a rate-limit bypass through forged
+`X-Forwarded-For` headers, stopped accepting HTML files renamed to `.jpg`,
+added an audit that fails the suite if any API route forgets its permission
+check, and upgraded to Django 5.2 LTS (clearing 37 known vulnerabilities).
+Scheduled jobs record every run, and admins can see a job that has stopped.
+
+The site is not deployed yet. [`deploy/DEPLOY.md`](deploy/DEPLOY.md) is a
+step-by-step runbook with the Nginx, gunicorn, systemd, cron and backup
+configuration; it has been checked locally but not yet run on a real server,
+and it says exactly which parts are unverified. CI (GitHub Actions) runs the
+backend suite against PostgreSQL 18, the frontend checks, both golden paths
+with the accessibility scan, and the dependency audits on every push.
 
 ## Getting started
 
-Requires Python 3.12, PostgreSQL 16+, and Node 20+.
+Requires Python 3.12, PostgreSQL 16+, and Node 20+. The database needs no
+extensions.
 
 ```bash
 # database (once, as the postgres superuser)
 psql -U postgres -c "CREATE DATABASE shebalocal;"
 psql -U postgres -c "CREATE USER sheba WITH PASSWORD 'your-password' CREATEDB;"
 psql -U postgres -d shebalocal -c "ALTER SCHEMA public OWNER TO sheba;"
-psql -U postgres -d shebalocal -c "CREATE EXTENSION cube; CREATE EXTENSION earthdistance; CREATE EXTENSION pg_trgm;"
 
 # backend
 cd backend
@@ -112,6 +136,7 @@ pip install -r requirements.txt
 cp .env.example .env           # fill in SECRET_KEY and DATABASE_URL
 python manage.py migrate
 python manage.py seed_catalogue
+python manage.py seed_demo       # optional: 18 providers with real history
 python manage.py runserver
 
 # frontend, in a second terminal
@@ -130,11 +155,14 @@ requires, are in [PRD §11](docs/ShebaLocal-PRD.pdf) and
 docs/       PRD (PDF + the source that generates it), trust math reference
 backend/    Django project — see backend/README.md
 frontend/   React client — see frontend/README.md
+deploy/     Nginx, gunicorn, systemd, backup scripts — see deploy/DEPLOY.md
+.github/    CI workflow
 ```
 
 ## Documentation
 
 - [Product Requirements Document](docs/ShebaLocal-PRD.pdf) — 40 pages, the full spec
 - [`backend/README.md`](backend/README.md) — running it, endpoints, design notes
-- [`frontend/README.md`](frontend/README.md) — running it, checks, design notes
+- [`frontend/README.md`](frontend/README.md) — running it, checks, accessibility, performance
+- [`deploy/DEPLOY.md`](deploy/DEPLOY.md) — production runbook
 - [`docs/README.md`](docs/README.md) — how the PRD is generated and verified

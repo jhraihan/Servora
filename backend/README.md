@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M8 Money — complete.** 463 tests passing.
+**M10 Harden — complete.** 568 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -17,6 +17,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 | M7 Reviews (double-blind, trust feedback) | Done |
 | M8 Money (cash settlement, commission, earnings) | Done |
 | M9 Frontend (React client) | Done — see ../frontend |
+| M10 Harden (security, jobs, performance, deploy) | Done — see ../deploy |
 
 ## Running it
 
@@ -43,9 +44,13 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 463
+python -m pytest              # all 568, about two minutes
 python -m pytest -k otp       # one area
 ```
+
+Tests run on `config.settings.test`, which swaps in a fast password hasher.
+Production-strength PBKDF2 costs about a second per hash, and with a user or
+two per test that made the suite take 14 minutes.
 
 The test runner creates and drops `test_shebalocal`, so the `sheba` role
 needs `CREATEDB`:
@@ -190,7 +195,7 @@ there is no SMS provider yet. Look for `OTP for +8801... is 123456`.
 ## Layout
 
 ```
-config/settings/     base.py, dev.py, prod.py
+config/settings/     base.py, dev.py, prod.py, test.py (fast password hashing for tests)
 apps/common/         base models, exceptions, pagination, throttling
 apps/accounts/       User, profiles, OTP, JWT, roles
 apps/catalogue/      ServiceCategory, Service, Location, seed data
@@ -199,6 +204,7 @@ apps/trust/          factors.py (pure math), engine.py (DB), TrustSnapshot
 apps/bookings/       ServiceRequest, Booking, BookingEvent, state_machine.py
 apps/reviews/        Review, ProviderReply, CustomerRating, ReviewEdit
 apps/payments/       Payment, LedgerEntry, earnings, reconciliation
+apps/operations/     JobRun, the job schedule, demo seeder, benchmark
 
 # within each app:
   models.py          persistence only, no business rules
@@ -222,21 +228,64 @@ per call site (PRD §8.5):
 ## Scheduled jobs
 
 Phase 1 has no Celery or Redis. Recurring work runs as management commands
-(PRD §8.4):
+(PRD §8.4). The schedule is defined once, in `apps/operations/jobs.py`:
+
+| Job | Runs | Does |
+|---|---|---|
+| `expire_requests` | every 15 min | closes requests unanswered past 24h |
+| `auto_confirm` | hourly | confirms jobs 72h after completion |
+| `reveal_reviews` | hourly | publishes reviews past the 14-day window |
+| `recompute_all_trust` | 03:00 | time decay keeps scores moving |
+| `reconcile_earnings` | 03:30 | fails if any ledger disagrees with its bookings |
+| `purge_otps` | every 10 min | deletes expired OTP rows |
+| `purge_documents` | 04:00 | deletes verification files past retention |
 
 ```bash
-python manage.py purge_otps          # expired OTP rows
-python manage.py purge_documents     # verification files past retention
-python manage.py seed_catalogue      # idempotent; safe to re-run
-python manage.py recompute_all_trust # nightly: time-decay keeps moving
-python manage.py expire_requests     # close requests unanswered past 24h
-python manage.py auto_confirm        # confirm jobs 72h after completion
-python manage.py reveal_reviews      # publish reviews past the 14-day window
-python manage.py reconcile_earnings  # exits 1 if any ledger disagrees
+python manage.py run_scheduled_jobs              # run every job once, in order
+python manage.py run_scheduled_jobs --only purge_otps
+python manage.py crontab                         # print the production crontab
 ```
 
-Register with Task Scheduler locally, cron in production — see PRD §11.3
-and §11.5.
+Every run is recorded as a `JobRun` row (start, finish, rows affected,
+error). Admins can see the health of every job at
+`GET /api/v1/admin/job-runs/`: a job is **overdue** if it has not succeeded
+within twice its interval, and **stuck** if any run has been `running` for
+longer than its interval. A cron job that silently stops is the classic way
+this kind of system rots, and this is the check that catches it.
+
+The production crontab is generated from the schedule, not typed by hand;
+see [`../deploy/DEPLOY.md`](../deploy/DEPLOY.md).
+
+## Demo data and benchmarks
+
+```bash
+python manage.py seed_demo                   # 18 providers, 6 archetypes, real bookings
+python manage.py seed_demo --reset           # wipe the demo rows and start again
+python manage.py seed_demo --bulk 10000      # add lightweight providers for load tests
+python manage.py benchmark                   # API latency against PRD 12.1
+```
+
+Every demo account uses the password `demo-pass-2026`. The customer is
+`+8801300050000`; provider #1 (`+8801300000001`) is the veteran, #2 is
+Kamal and #3 is Shakib from the PRD's worked example. `seed_demo` refuses
+to run when `DEBUG` is off, because it creates accounts with a published
+password.
+
+The 18-provider demo is built through the real services, not raw inserts:
+every booking walks the state machine, every payment writes ledger entries,
+and every review goes through the double-blind flow, so `reconcile_earnings`
+passes on it. `--bulk` providers are inserted directly for speed; they have
+offerings, areas and scores but no bookings.
+
+Results with 10,018 providers, 200 requests per endpoint, `DEBUG` off:
+
+| Measure | p95 | PRD target |
+|---|---|---|
+| Provider search | 100 ms (7–8 queries) | 400 ms |
+| Provider detail | 42 ms | 250 ms |
+| Trust breakdown | 16 ms | 250 ms |
+| One trust recompute (busiest provider) | 72 ms | 2 s |
+| Nightly recompute of all 10,018 | 175 s | 15 min |
 
 ## Notes for whoever picks this up
 
@@ -348,5 +397,26 @@ and §11.5.
 - **Locations are a three-level tree** (city > thana > area) with a centroid
   on every node. `Location.descendant_ids()` expands downward, so a provider
   serving "Dhanmondi" matches a request in "Dhanmondi 27". Proximity sorting
-  uses the `<@>` earthdistance operator — verified working against the seed
-  data.
+  uses the distance in degrees between centroids, in plain SQL. At Dhaka's
+  scale that ranks the same way as great-circle distance.
+- **The database needs no PostgreSQL extensions.** Early setup notes
+  installed `cube`, `earthdistance` and `pg_trgm`, but nothing uses them.
+  `earthdistance` can only be created by a superuser, so a dump that contains
+  it cannot be restored by the app's own role. The restore drill in
+  `deploy/scripts/restore-check.sh` found this.
+- **Rate limits key on the real client address.** DRF reads the client IP
+  from `X-Forwarded-For` only when `TRUSTED_PROXY_COUNT` says a proxy is
+  there (0 in development, 1 behind Nginx). Before this, a client could send
+  a fresh fake header on every request and never hit the login limit; a test
+  proved the right password succeeding on the sixth attempt.
+- **Uploads are checked by content, not by name.** A verification document
+  must start with the magic bytes of JPEG, PNG or PDF, and they must agree
+  with the extension. An HTML file renamed to `.jpg` used to be accepted.
+- **Every API route is covered by an access audit.**
+  `apps/common/tests/test_access_control.py` walks Django's URL table: every
+  route not on the public allowlist must refuse an anonymous caller, and every
+  admin route must refuse an ordinary customer. A new endpoint that forgets
+  its permission class fails the suite without anyone writing a test for it.
+- **Dependencies are audited.** `pip-audit` and `npm audit` run in CI; the
+  M10 audit upgraded Django 5.1 to 5.2 LTS and cleared 37 known
+  vulnerabilities.
