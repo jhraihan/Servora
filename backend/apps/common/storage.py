@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import FileSystemStorage, storages
 
 
 class PrivateMediaStorage(FileSystemStorage):
@@ -13,6 +13,10 @@ class PrivateMediaStorage(FileSystemStorage):
             "Private media has no public URL. Serve it through an "
             "authenticated view."
         )
+
+
+def private_storage():
+    return storages["private"]
 
 
 private_media_storage = PrivateMediaStorage()

@@ -18,6 +18,8 @@ env = environ.Env(
     PLATFORM_COMMISSION_PERCENT=(int, 12),
     TRUST_ALGO_VERSION=(str, "v1.0"),
     TRUSTED_PROXY_COUNT=(int, 0),
+    USE_OBJECT_STORAGE=(bool, False),
+    EXPOSE_CLIENT_IDENT=(bool, False),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -60,6 +62,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "apps.common.middleware.ClientIdentHeaderMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -159,6 +162,18 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "private": {
+        "BACKEND": "apps.common.storage.PrivateMediaStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 
 OTP_TTL_SECONDS = env("OTP_TTL_SECONDS")
 OTP_MAX_SENDS_PER_HOUR = env("OTP_MAX_SENDS_PER_HOUR")
@@ -167,6 +182,8 @@ PLATFORM_COMMISSION_PERCENT = env("PLATFORM_COMMISSION_PERCENT")
 TRUST_ALGO_VERSION = env("TRUST_ALGO_VERSION")
 
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
+
+EXPOSE_CLIENT_IDENT = env("EXPOSE_CLIENT_IDENT")
 
 
 LOGGING = {
