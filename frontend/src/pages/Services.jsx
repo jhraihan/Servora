@@ -46,7 +46,7 @@ export function CategoryServices() {
           {category.services.map((s) => (
             <li key={s.id} className="card flex flex-col p-5">
               <p className="font-semibold text-ink">{s.name}</p>
-              <p className="mt-1 text-xs text-slate-500">{PRICING_MODEL_LABEL[s.pricingModel]}</p>
+              <p className="mt-1 text-xs text-slate-600">{PRICING_MODEL_LABEL[s.pricingModel]}</p>
               <p className="mt-3 text-sm text-slate-600">
                 {s.priceMin && s.priceMax ? (
                   <>Typical price <Money value={s.priceMin} /> – <Money value={s.priceMax} /></>
@@ -55,10 +55,10 @@ export function CategoryServices() {
                 )}
               </p>
               <div className="mt-4 flex gap-2">
-                <Link to={`/providers?service=${s.id}`} className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
+                <Link to={`/providers?service=${s.id}`} className="rounded-2xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
                   Find providers
                 </Link>
-                <Link to={`/request-service?service=${s.id}`} className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                <Link to={`/request-service?service=${s.id}`} className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                   Request a job
                 </Link>
               </div>

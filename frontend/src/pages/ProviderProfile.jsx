@@ -58,7 +58,7 @@ export default function ProviderProfile() {
         <section className="card p-5 lg:col-start-1" aria-labelledby="prices-heading">
           <h2 id="prices-heading" className="section-title">Services and prices</h2>
           {bookable.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No services listed yet.</p>
+            <p className="mt-2 text-sm text-slate-600">No services listed yet.</p>
           ) : (
             <ul className="mt-3 divide-y divide-slate-100">
               {bookable.map((o) => (
@@ -85,7 +85,7 @@ export default function ProviderProfile() {
           ) : (
             <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(calendar.data ?? []).map((day) => (
-                <li key={day.date} className={`rounded-xl border p-3 text-sm ${day.windows.length ? "border-brand-200 bg-brand-50" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
+                <li key={day.date} className={`rounded-2xl border p-3 text-sm ${day.windows.length ? "border-brand-200 bg-brand-50" : "border-slate-200 bg-slate-50 text-slate-600"}`}>
                   <p className="font-semibold">{WEEKDAYS[(new Date(`${day.date}T00:00:00`).getDay() + 6) % 7].slice(0, 3)}, {formatDate(day.date).split(" ").slice(0, 2).join(" ")}</p>
                   {day.windows.length ? (
                     day.windows.map((w) => (
@@ -104,20 +104,20 @@ export default function ProviderProfile() {
           <h2 id="reviews-heading" className="section-title">
             Reviews {reviews.data?.count ? `(${reviews.data.count})` : ""}
           </h2>
-          <p className="mt-1 text-xs text-slate-500">Only customers with a completed job can review. Reviews are revealed once both sides have rated.</p>
-          {reviews.data?.results.length === 0 && <p className="mt-3 text-sm text-slate-500">No published reviews yet.</p>}
+          <p className="mt-1 text-xs text-slate-600">Only customers with a completed job can review. Reviews are revealed once both sides have rated.</p>
+          {reviews.data?.results.length === 0 && <p className="mt-3 text-sm text-slate-600">No published reviews yet.</p>}
           <ul className="mt-2 divide-y divide-slate-100">
             {(reviews.data?.results ?? []).map((r) => (
               <li key={r.id} className="py-4">
                 <div className="flex items-center justify-between">
                   <Stars value={r.rating} />
-                  <span className="text-xs text-slate-500">{formatDate(r.createdAt)}</span>
+                  <span className="text-xs text-slate-600">{formatDate(r.createdAt)}</span>
                 </div>
                 <p className="mt-1 text-sm font-medium text-ink">{r.customerName}</p>
                 {r.comment && <p className="mt-1 text-sm text-slate-700">{r.comment}</p>}
                 {r.reply && (
-                  <div className="mt-2 rounded-xl bg-slate-50 p-3 text-sm">
-                    <p className="text-xs font-semibold text-slate-500">Reply from {p.displayName}</p>
+                  <div className="mt-2 rounded-2xl bg-slate-50 p-3 text-sm">
+                    <p className="text-xs font-semibold text-slate-600">Reply from {p.displayName}</p>
                     <p className="mt-0.5 text-slate-700">{r.reply.body}</p>
                   </div>
                 )}

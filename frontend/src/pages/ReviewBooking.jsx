@@ -56,7 +56,7 @@ export default function ReviewBooking() {
         <PageHeader title={`Review ${booking.providerName}`} subtitle={booking.service?.name} />
       </div>
 
-      <div className="mb-4 rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
+      <div className="mb-4 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
         <p className="font-semibold">Your review is sealed until both sides have rated.</p>
         <p className="mt-1">
           {booking.providerName} cannot see what you wrote until they have rated you too, or 14 days pass. They cannot

@@ -35,7 +35,7 @@ export default function Earnings() {
       </div>
 
       {s.flaggedPayments > 0 && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {s.flaggedPayments} job{s.flaggedPayments > 1 ? "s are" : " is"} under review because the amount you recorded differs
           from what the customer confirmed. It is left out of your earnings until our team resolves it.
         </div>
@@ -53,11 +53,11 @@ export default function Earnings() {
           </div>
         </div>
         {earnings.data.periods.length === 0 ? (
-          <p className="card p-5 text-sm text-slate-500">No completed jobs yet.</p>
+          <p className="card p-5 text-sm text-slate-600">No completed jobs yet.</p>
         ) : (
           <div className="card overflow-x-auto">
             <table className="w-full min-w-[480px] text-sm">
-              <thead className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
+              <thead className="border-b border-slate-200 text-left text-xs uppercase text-slate-600">
                 <tr>
                   <th scope="col" className="p-3">Period</th>
                   <th scope="col" className="p-3 text-right">Jobs</th>
@@ -89,12 +89,12 @@ export default function Earnings() {
           <PageLoader />
         ) : (
           <ul className="card divide-y divide-slate-100">
-            {ledger.data.results.length === 0 && <li className="p-4 text-sm text-slate-500">No entries yet.</li>}
+            {ledger.data.results.length === 0 && <li className="p-4 text-sm text-slate-600">No entries yet.</li>}
             {ledger.data.results.map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 p-4 text-sm">
                 <div>
                   <p className="font-medium text-ink">{LEDGER_KIND_LABEL[e.kind] ?? e.kind}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-600">
                     {formatDate(e.createdAt)}
                     {e.bookingId && ` · Job #${e.bookingId}`}
                     {e.reference && ` · ${e.reference}`}

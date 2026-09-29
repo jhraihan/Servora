@@ -89,6 +89,23 @@ index.html           includes a static header shell that paints before the JS ar
 - **The request wizard saves its draft to `sessionStorage`** after every step,
   so a refresh mid-way loses nothing (PRD 10.2).
 
+## Finding a service
+
+A customer should never have to guess which category their problem lives in.
+Every page carries one search box (in the header on a laptop, pinned under it
+on a phone) that matches all 45 services as you type, including the words
+people actually use: "ac not cooling", "no hot water", "socket", "maid".
+Choosing a suggestion goes straight to the providers for that service.
+
+On a provider list, the other services in the same category appear as chips,
+so moving from "AC servicing" to "AC gas refill" is one tap rather than a trip
+back through the category page. When nothing matches, the page offers those
+sibling services and a way to post a request, instead of a dead end.
+
+The request wizard is three steps (the job, where and when, confirm), down
+from six. It collects the same fields and still saves a draft to
+`sessionStorage` after every step.
+
 ## Accessibility
 
 PRD 12.4 asks for WCAG 2.1 AA. `e2e/accessibility.spec.js` runs axe-core
@@ -96,8 +113,9 @@ against every page at 360 px, signed out, as a customer and as a provider,
 including the open filter panel, the expanded trust breakdown and the mobile
 menu. The first run failed on colour contrast: grey `slate-400` text measures
 about 2.6:1 against white, well under the 4.5:1 minimum. Body text now uses
-`slate-500` or darker; `slate-400` remains only on disabled controls, which
-WCAG exempts.
+`slate-600` or darker; `slate-400` remains only on disabled controls, which
+WCAG exempts. The redesign later broke this again — `slate-500` on the tinted
+canvas measures 4.21:1 — which the scan caught before it shipped.
 
 Automated checks cannot see focus. A skip link is the first tab stop on every
 page. A test asserts that it becomes visible when focused, that it moves focus

@@ -2,16 +2,16 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 const BUTTON_VARIANTS = {
-  primary: "bg-brand-700 text-white hover:bg-brand-800 disabled:bg-brand-700/50",
-  secondary: "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:text-slate-400",
+  primary: "bg-ink text-white hover:bg-brand-900 disabled:bg-ink/50",
+  secondary: "border border-slate-300 bg-white/80 text-slate-800 backdrop-blur-xl hover:bg-white disabled:text-slate-400",
   ghost: "text-brand-700 hover:bg-brand-50 disabled:text-slate-400",
   danger: "bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-600/50",
 };
 
 const BUTTON_SIZES = {
   sm: "px-3 py-1.5 text-sm",
-  md: "px-4 py-2.5 text-sm",
-  lg: "px-5 py-3 text-base",
+  md: "px-5 py-2.5 text-sm",
+  lg: "px-6 py-3.5 text-base",
 };
 
 export function Button({
@@ -19,7 +19,7 @@ export function Button({
   className = "", type = "button", ...rest
 }) {
   const classes = [
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors disabled:cursor-not-allowed",
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors disabled:cursor-not-allowed",
     BUTTON_VARIANTS[variant],
     BUTTON_SIZES[size],
     className,
@@ -93,7 +93,7 @@ export function EmptyState({ title, body, action }) {
   return (
     <div className="card flex flex-col items-center px-6 py-12 text-center">
       <p className="text-base font-semibold text-ink">{title}</p>
-      {body && <p className="mt-1.5 max-w-sm text-sm text-slate-500">{body}</p>}
+      {body && <p className="mt-1.5 max-w-sm text-sm text-slate-600">{body}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -134,7 +134,7 @@ export function Field({ label, htmlFor, error, hint, children }) {
         {label}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-slate-600">{hint}</p>}
       {error && <p className="mt-1 text-xs font-medium text-rose-700">{error}</p>}
     </div>
   );
@@ -169,9 +169,9 @@ PageHeader.propTypes = {
 export function Stat({ label, value, hint }) {
   return (
     <div className="card p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-600">{label}</p>
       <p className="mt-1 text-2xl font-bold text-ink">{value}</p>
-      {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-0.5 text-xs text-slate-600">{hint}</p>}
     </div>
   );
 }

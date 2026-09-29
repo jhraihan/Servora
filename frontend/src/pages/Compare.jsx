@@ -64,11 +64,11 @@ export default function Compare() {
         <table className="w-full min-w-[520px] text-sm">
           <thead>
             <tr className="border-b border-slate-200">
-              <th scope="col" className="p-4 text-left text-xs font-medium uppercase text-slate-500">Provider</th>
+              <th scope="col" className="p-4 text-left text-xs font-medium uppercase text-slate-600">Provider</th>
               {columns.map((c) => (
                 <th key={c.id} scope="col" className="p-4 text-left align-top">
                   <Link to={`/providers/${c.id}`} className="font-semibold text-ink hover:text-brand-700">{c.p.displayName}</Link>
-                  <button type="button" onClick={() => toggle(c.id)} className="mt-1 block text-xs font-medium text-slate-500 hover:text-rose-700">
+                  <button type="button" onClick={() => toggle(c.id)} className="mt-1 block text-xs font-medium text-slate-600 hover:text-rose-700">
                     Remove
                   </button>
                 </th>

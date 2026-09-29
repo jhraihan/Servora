@@ -4,7 +4,7 @@ Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/Sheba
 
 ## Status
 
-**M10 Harden — complete.** 569 tests passing.
+**M10 Harden — complete.** 587 tests passing.
 
 | Milestone | State |
 |---|---|
@@ -44,7 +44,7 @@ python manage.py createsuperuser
 ## Tests
 
 ```bash
-python -m pytest              # all 569, about two minutes
+python -m pytest              # all 587, about two minutes
 python -m pytest -k otp       # one area
 ```
 
@@ -426,6 +426,11 @@ Results with 10,018 providers, 200 requests per endpoint, `DEBUG` off:
 - **Uploads are checked by content, not by name.** A verification document
   must start with the magic bytes of JPEG, PNG or PDF, and they must agree
   with the extension. An HTML file renamed to `.jpg` used to be accepted.
+- **Services carry the words customers actually use.** `Service.search_terms`
+  holds symptom phrases ("ac not cooling", "no hot water", "socket") so a
+  search matches how someone describes the problem, not the catalogue's
+  official name. Every term of a query must match, so "dripping tap" narrows
+  rather than widens. Without this, "cooling" and "socket" returned nothing.
 - **Every API route is covered by an access audit.**
   `apps/common/tests/test_access_control.py` walks Django's URL table: every
   route not on the public allowlist must refuse an anonymous caller, and every

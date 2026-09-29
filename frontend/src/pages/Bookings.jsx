@@ -37,7 +37,7 @@ export function MyRequests() {
     <>
       <PageHeader title="My requests" subtitle="Jobs you have posted and who has responded." action={<Button to="/request-service">New request</Button>} />
       {location.state?.created && (
-        <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div role="status" className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Request sent. Matching providers have been notified — you will see a booking here as soon as one accepts.
         </div>
       )}
@@ -53,13 +53,13 @@ export function MyRequests() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold text-ink">{r.service?.name}</p>
-                  <p className="text-sm text-slate-500">{r.location?.fullName} · {formatDateTime(r.preferredStart)}</p>
+                  <p className="text-sm text-slate-600">{r.location?.fullName} · {formatDateTime(r.preferredStart)}</p>
                 </div>
                 <RequestStateBadge state={r.state} />
               </div>
               <p className="mt-2 line-clamp-2 text-sm text-slate-700">{r.description}</p>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="text-slate-500">
+                <span className="text-slate-600">
                   {r.responseCount} response{r.responseCount === 1 ? "" : "s"}
                   {r.state === REQUEST_STATE.OPEN && ` · expires ${formatDateTime(r.expiresAt)}`}
                 </span>
@@ -117,7 +117,7 @@ export function BookingList({ basePath, title, subtitle }) {
               <Link to={`${basePath}/${b.id}`} className="card flex items-center justify-between gap-3 p-5 hover:border-brand-300" data-testid="booking-row">
                 <div>
                   <p className="font-semibold text-ink">{b.service?.name}</p>
-                  <p className="text-sm text-slate-500">{b.providerName} · {formatDateTime(b.scheduledFor)}</p>
+                  <p className="text-sm text-slate-600">{b.providerName} · {formatDateTime(b.scheduledFor)}</p>
                 </div>
                 <div className="text-right">
                   <BookingStateBadge state={b.state} />
@@ -174,7 +174,7 @@ export function BookingDetail() {
         <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
           {isProvider ? (
             <div>
-              <dt className="text-slate-500">Customer</dt>
+              <dt className="text-slate-600">Customer</dt>
               <dd className="font-medium text-ink">{booking.customerName || "Customer"}</dd>
               {booking.customerPhone && (
                 <dd><a href={`tel:${booking.customerPhone}`} className="font-semibold text-brand-700">{booking.customerPhone}</a></dd>
@@ -182,28 +182,28 @@ export function BookingDetail() {
             </div>
           ) : (
             <div>
-              <dt className="text-slate-500">Provider</dt>
+              <dt className="text-slate-600">Provider</dt>
               <dd><Link to={`/providers/${booking.providerId}`} className="font-medium text-brand-700">{booking.providerName}</Link></dd>
             </div>
           )}
           <div>
-            <dt className="text-slate-500">Address</dt>
+            <dt className="text-slate-600">Address</dt>
             <dd className="whitespace-pre-line text-ink">{booking.address}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Agreed price</dt>
+            <dt className="text-slate-600">Agreed price</dt>
             <dd className="text-lg font-bold text-ink"><Money value={booking.agreedPrice} /></dd>
           </div>
           {booking.finalPrice && (
             <div>
-              <dt className="text-slate-500">Amount recorded by provider</dt>
+              <dt className="text-slate-600">Amount recorded by provider</dt>
               <dd className="text-lg font-bold text-ink"><Money value={booking.finalPrice} /></dd>
             </div>
           )}
         </dl>
 
         {booking.cancelReason && (
-          <p className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+          <p className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
             Cancelled by {booking.cancelledBy}: “{booking.cancelReason}”
           </p>
         )}

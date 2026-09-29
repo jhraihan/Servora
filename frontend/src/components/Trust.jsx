@@ -65,7 +65,7 @@ function Check({ ok, label }) {
           Verified
         </span>
       ) : (
-        <span className="text-slate-500">Not yet</span>
+        <span className="text-slate-600">Not yet</span>
       )}
     </li>
   );
@@ -95,7 +95,7 @@ function FactorBar({ factor }) {
     <li className="py-2">
       <div className="flex items-baseline justify-between text-sm">
         <span className="text-slate-700">{factor.label}</span>
-        <span className="tabular-nums text-slate-500">
+        <span className="tabular-nums text-slate-600">
           <span className="font-semibold text-ink">{Math.round(factor.score)}</span>
           <span className="text-xs"> · weight {Math.round(factor.weight * 100)}%</span>
         </span>

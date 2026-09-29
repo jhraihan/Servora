@@ -130,7 +130,7 @@ export function Register() {
             <button type="button" className="font-semibold text-brand-700" onClick={() => auth.sendOtp(form.phone).catch(setError)}>
               Send a new code
             </button>
-            <button type="button" className="text-slate-500 hover:text-slate-700" onClick={skip} disabled={busy}>
+            <button type="button" className="text-slate-600 hover:text-slate-700" onClick={skip} disabled={busy}>
               Skip for now
             </button>
           </div>
@@ -151,7 +151,7 @@ export function Register() {
                 [ROLE.CUSTOMER, "Hire a provider"],
                 [ROLE.PROVIDER, "Offer my services"],
               ].map(([role, label]) => (
-                <label key={role} className={`cursor-pointer rounded-xl border p-3 text-center text-sm font-medium ${form.role === role ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-300 text-slate-700"}`}>
+                <label key={role} className={`cursor-pointer rounded-2xl border p-3 text-center text-sm font-medium ${form.role === role ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-300 text-slate-700"}`}>
                   <input type="radio" name="role" value={role} checked={form.role === role} onChange={set("role")} className="sr-only" />
                   {label}
                 </label>

@@ -103,25 +103,25 @@ export function ProviderCard({ provider, serviceId }) {
         </div>
         <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
           <div>
-            <dt className="text-xs text-slate-500">Jobs done</dt>
+            <dt className="text-xs text-slate-600">Jobs done</dt>
             <dd className="font-semibold tabular-nums text-ink">{provider.jobsCompleted}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Cancelled</dt>
+            <dt className="text-xs text-slate-600">Cancelled</dt>
             <dd className="font-semibold tabular-nums text-ink">{provider.jobsCancelled}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Replies in</dt>
+            <dt className="text-xs text-slate-600">Replies in</dt>
             <dd className="font-semibold text-ink">{formatDuration(provider.medianResponseSeconds)}</dd>
           </div>
         </dl>
-        {areas.length > 0 && <p className="mt-3 text-xs text-slate-500">Serves {areas.join(", ")}</p>}
+        {areas.length > 0 && <p className="mt-3 text-xs text-slate-600">Serves {areas.join(", ")}</p>}
       </div>
       <div className="flex flex-row items-center justify-between gap-3 border-t border-slate-100 pt-4 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
         <div className="sm:text-right">
           {provider.fromPrice && (
             <>
-              <p className="text-xs text-slate-500">From</p>
+              <p className="text-xs text-slate-600">From</p>
               <Money value={provider.fromPrice} className="text-xl font-bold text-ink" />
             </>
           )}
@@ -131,12 +131,12 @@ export function ProviderCard({ provider, serviceId }) {
             type="button"
             onClick={() => toggle(provider.id)}
             disabled={!inCompare && compareFull}
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+            className="rounded-2xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
             aria-pressed={inCompare}
           >
             {inCompare ? "Comparing" : "Compare"}
           </button>
-          <Link to={profileLink} className="rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
+          <Link to={profileLink} className="rounded-2xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
             View
           </Link>
         </div>
@@ -160,7 +160,7 @@ export function BookingTimeline({ events }) {
         <li key={event.id} className="mb-5 ml-5 last:mb-0">
           <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full border-2 border-white bg-brand-600" />
           <p className="text-sm font-semibold text-ink">{BOOKING_STATE_LABEL[event.toState] ?? event.toState}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600">
             {ACTOR_LABEL[event.actor] ?? event.actor} · {formatDateTime(event.createdAt)}
           </p>
           {event.reason && <p className="mt-1 text-sm text-slate-600">“{event.reason}”</p>}

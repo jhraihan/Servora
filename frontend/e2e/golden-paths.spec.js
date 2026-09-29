@@ -62,9 +62,9 @@ test("customer books and reviews; provider accepts and completes", async ({ brow
     await expect(customer).toHaveURL(/\/$/);
     await expectNoHorizontalScroll(customer);
 
-    await customer.getByLabel("Service").selectOption({ label: SERVICE_OPTION });
-    await customer.getByLabel("Area").selectOption({ label: "All of Dhanmondi" });
-    await customer.getByRole("button", { name: "Find providers" }).click();
+    await customer.getByRole("combobox").first().fill("AC servicing");
+    await customer.getByRole("option", { name: /AC servicing/ }).first().click();
+    await expect(customer).toHaveURL(/\/providers\?service=/);
 
     const card = customer.getByTestId("provider-card").filter({ hasText: PROVIDER.name });
     await expect(card).toBeVisible();
@@ -81,18 +81,18 @@ test("customer books and reviews; provider accepts and completes", async ({ brow
 
   await test.step("customer requests the job through the wizard", async () => {
     await customer.getByRole("link", { name: /^Request / }).click();
-    await expect(customer.getByText("Step 2 of 6 · Where")).toBeVisible();
+    await expect(customer.getByText("Step 1 of 3 · The job")).toBeVisible();
 
+    await customer.getByLabel("What do you need done?").selectOption({ label: SERVICE_OPTION });
+    await customer.getByLabel("Describe the problem").fill("The bedroom AC runs but does not cool at all.");
+    await customer.getByRole("button", { name: "Continue" }).click();
+
+    await expect(customer.getByText("Step 2 of 3 · Where and when")).toBeVisible();
     await customer.getByLabel("Area").selectOption({ label: "All of Dhanmondi" });
     await customer.getByLabel("Full address").fill(ADDRESS);
     await customer.getByRole("button", { name: "Continue" }).click();
 
-    await customer.getByLabel("Describe the problem").fill("The bedroom AC runs but does not cool at all.");
-    await customer.getByRole("button", { name: "Continue" }).click();
-    await customer.getByRole("button", { name: "Continue" }).click();
-
     await expect(customer.getByText(`Only ${PROVIDER.name}`)).toBeVisible();
-    await customer.getByRole("button", { name: "Continue" }).click();
     await expectNoHorizontalScroll(customer);
     await customer.getByRole("button", { name: "Send request" }).click();
 

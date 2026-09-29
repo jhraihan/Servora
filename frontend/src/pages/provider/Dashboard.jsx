@@ -28,7 +28,7 @@ export default function Dashboard() {
       <PageHeader
         title="Dashboard"
         action={
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-2 ring-1 ring-slate-200">
+          <label className="flex cursor-pointer items-center gap-3 rounded-2xl bg-white px-4 py-2 ring-1 ring-slate-200">
             <span className="text-sm font-medium text-slate-700">Taking new jobs</span>
             <input
               type="checkbox"
@@ -44,7 +44,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="card flex flex-col justify-between p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Your trust</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-600">Your trust</p>
           <div className="mt-2"><TrustBadge score={d.trust.score} tier={d.trust.tier} /></div>
           <Link to="/provider/trust" className="mt-2 text-xs font-semibold text-brand-700">See breakdown →</Link>
         </div>
@@ -54,7 +54,7 @@ export default function Dashboard() {
       </div>
 
       {Number(d.earnings.outstandingPayable) > 0 && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           You owe <Money value={d.earnings.outstandingPayable} className="font-semibold" /> in platform commission from cash jobs.{" "}
           <Link to="/provider/earnings" className="font-semibold underline">View earnings</Link>
         </div>
@@ -91,7 +91,7 @@ export default function Dashboard() {
                   <Link to={`/provider/bookings/${b.id}`} className="card flex items-center justify-between p-4 hover:border-brand-300">
                     <div>
                       <p className="font-semibold text-ink">{b.service?.name}</p>
-                      <p className="text-sm text-slate-500">{formatDateTime(b.scheduledFor)}</p>
+                      <p className="text-sm text-slate-600">{formatDateTime(b.scheduledFor)}</p>
                     </div>
                     <Money value={b.agreedPrice} className="font-semibold text-ink" />
                   </Link>
@@ -126,12 +126,12 @@ function InboxItem({ request }) {
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-semibold text-ink">{request.service?.name}</p>
-          <p className="text-sm text-slate-500">{request.location?.fullName} · {formatDateTime(request.preferredStart)}</p>
+          <p className="text-sm text-slate-600">{request.location?.fullName} · {formatDateTime(request.preferredStart)}</p>
         </div>
         {request.kind === "direct" && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-800">Sent to you</span>}
       </div>
       <p className="mt-2 text-sm text-slate-700">{request.description}</p>
-      <p className="mt-2 text-xs text-slate-500">The exact address is shared once you accept.</p>
+      <p className="mt-2 text-xs text-slate-600">The exact address is shared once you accept.</p>
       <ErrorMessage error={respond.error} className="mt-3" />
       {declining ? (
         <div className="mt-3 space-y-2">

@@ -136,12 +136,12 @@ function Offerings({ offerings }) {
     <section className="card p-5">
       <h2 className="section-title">Services and prices</h2>
       <ul className="mt-3 divide-y divide-slate-100">
-        {offerings.length === 0 && <li className="py-3 text-sm text-slate-500">No services yet.</li>}
+        {offerings.length === 0 && <li className="py-3 text-sm text-slate-600">No services yet.</li>}
         {offerings.map((o) => (
           <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
             <div>
-              <p className={`font-medium ${o.isActive ? "text-ink" : "text-slate-500 line-through"}`}>{o.service?.name}</p>
-              {o.priceFlag && <p className="text-xs text-slate-500">{PRICE_FLAG_LABEL[o.priceFlag]}</p>}
+              <p className={`font-medium ${o.isActive ? "text-ink" : "text-slate-600 line-through"}`}>{o.service?.name}</p>
+              {o.priceFlag && <p className="text-xs text-slate-600">{PRICE_FLAG_LABEL[o.priceFlag]}</p>}
             </div>
             <div className="flex items-center gap-2">
               <Money value={o.price} className="font-semibold text-ink" />
@@ -194,7 +194,7 @@ function ServiceAreas({ selectedIds }) {
       <p className="mt-1 text-sm text-slate-600">Choosing a thana covers every area inside it.</p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {rows.map((r) => (
-          <label key={r.id} className={`cursor-pointer rounded-xl border px-3 py-2 text-sm ${selected.has(r.id) ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-300 text-slate-700"}`}>
+          <label key={r.id} className={`cursor-pointer rounded-2xl border px-3 py-2 text-sm ${selected.has(r.id) ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-300 text-slate-700"}`}>
             <input type="checkbox" className="sr-only" checked={selected.has(r.id)} onChange={() => flip(r.id)} />
             {r.label}
           </label>
@@ -245,7 +245,7 @@ function WeeklyHours({ windows }) {
                 <input type="time" aria-label={`${WEEKDAYS[d.weekday]} end`} className="input w-32 py-1.5" value={d.endTime} onChange={(e) => patch(d.weekday, { endTime: e.target.value })} />
               </div>
             ) : (
-              <span className="text-sm text-slate-500">Off</span>
+              <span className="text-sm text-slate-600">Off</span>
             )}
           </li>
         ))}

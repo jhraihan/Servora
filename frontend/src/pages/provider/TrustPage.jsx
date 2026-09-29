@@ -49,7 +49,7 @@ export default function TrustPage() {
             <h2 className="section-title">Where you can gain the most</h2>
             <ul className="mt-3 space-y-3">
               {weakest.map((f) => (
-                <li key={f.key} className="rounded-xl bg-slate-50 p-4">
+                <li key={f.key} className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-sm font-semibold text-ink">
                     {f.label} · {Math.round(f.score)}/100
                   </p>
@@ -68,12 +68,12 @@ export default function TrustPage() {
               <li key={s.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div>
                   <p className="text-ink">{TRIGGER_LABEL[s.trigger] ?? s.trigger}</p>
-                  <p className="text-xs text-slate-500">{formatDateTime(s.createdAt)}</p>
+                  <p className="text-xs text-slate-600">{formatDateTime(s.createdAt)}</p>
                 </div>
                 <TrustBadge score={s.score} tier={s.tier} />
               </li>
             ))}
-            {history.data?.results.length === 0 && <li className="py-3 text-sm text-slate-500">No history yet.</li>}
+            {history.data?.results.length === 0 && <li className="py-3 text-sm text-slate-600">No history yet.</li>}
           </ul>
         </section>
       </div>

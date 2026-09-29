@@ -3,16 +3,23 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-200: #99f6e4;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
+  --color-brand-50: #f2f8f2;
+  --color-brand-100: #dcecdc;
+  --color-brand-200: #b9d9ba;
+  --color-brand-300: #8dbf90;
+  --color-brand-400: #6aa470;
+  --color-brand-500: #4f8f55;
+  --color-brand-600: #3a7340;
+  --color-brand-700: #2c5a31;
+  --color-brand-800: #1f4324;
+  --color-brand-900: #14301a;
+  --color-brand-950: #0c2011;
 
-  --color-ink: #14213d;
+  --color-ink: #12261a;
+  --color-canvas: #f4f8f3;
+
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.75rem;
 }
 
 @layer base {
@@ -21,21 +28,33 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply bg-canvas text-slate-800 antialiased;
   }
 
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-brand-600;
   }
+
+  .on-dark :focus-visible {
+    @apply outline-brand-100;
+  }
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-3xl border border-white/70 bg-white/85 shadow-[0_10px_34px_-20px_rgba(18,38,26,0.45)] backdrop-blur-xl;
+  }
+
+  .glass-dark {
+    @apply rounded-3xl border border-white/15 bg-white/10 backdrop-blur-xl;
+  }
+
+  .surface-forest {
+    @apply bg-gradient-to-br from-brand-950 via-brand-800 to-brand-600 text-white;
   }
 
   .input {
-    @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
+    @apply block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
   }
 
   .label {
@@ -43,10 +62,26 @@
   }
 
   .page-title {
-    @apply text-2xl font-bold tracking-tight text-ink sm:text-3xl;
+    @apply text-3xl font-bold tracking-tight text-ink sm:text-4xl;
   }
 
   .section-title {
     @apply text-lg font-semibold text-ink;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition;
+  }
+
+  .chip-idle {
+    @apply border border-slate-300 bg-white/80 text-slate-700 hover:border-brand-400 hover:text-brand-800;
+  }
+
+  .chip-active {
+    @apply bg-ink text-white;
+  }
+
+  .fab {
+    @apply inline-flex items-center justify-center rounded-full bg-ink text-white shadow-lg transition hover:bg-brand-900;
   }
 }

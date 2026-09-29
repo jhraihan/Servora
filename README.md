@@ -86,7 +86,7 @@ migration to one line per call site.
 | M9 Frontend — React client, mobile-first | Done |
 | M10 Harden — security, performance, accessibility, deploy | Done |
 
-Backend: 569 tests. Frontend: 47 unit and component tests, plus Playwright
+Backend: 587 tests. Frontend: 47 unit and component tests, plus Playwright
 runs of both golden paths and a WCAG 2.1 AA accessibility scan of every page,
 in Chromium at a 360px phone viewport. All six trust factors run on real
 platform data, and every provider's ledger reconciles against their bookings.
