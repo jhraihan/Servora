@@ -16,7 +16,7 @@ export const useAuthStore = create(
       clear: () => set({ access: null, refresh: null, user: null }),
     }),
     {
-      name: "shebalocal-session",
+      name: "servorabd-session",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ refresh: state.refresh, user: state.user }),
     },

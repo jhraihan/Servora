@@ -1,4 +1,4 @@
-# ShebaLocal — Frontend
+# ServoraBd — Frontend
 
 React 18 · Vite 6 · JavaScript · TanStack Query · Zustand · Tailwind CSS 4.
 

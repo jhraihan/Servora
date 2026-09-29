@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Render the ShebaLocal PRD to PDF.
+Render the ServoraBd PRD to PDF.
 
     python docs/build_prd.py
 
@@ -403,7 +403,7 @@ def build(out_path):
 
 if __name__ == "__main__":
     here = os.path.dirname(os.path.abspath(__file__))
-    target = os.path.join(here, "ShebaLocal-PRD.pdf")
+    target = os.path.join(here, "ServoraBd-PRD.pdf")
     build(target)
     size = os.path.getsize(target)
     print("Wrote %s (%.1f KB)" % (target, size / 1024.0))

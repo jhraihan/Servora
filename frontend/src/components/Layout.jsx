@@ -72,7 +72,7 @@ export default function Layout() {
           <Link to={isProvider ? "/provider/dashboard" : "/"} className="flex items-center gap-2">
             <img src="/favicon.svg" alt="" className="h-8 w-8" />
             <span className="text-lg font-bold tracking-tight text-ink">
-              Sheba<span className="text-brand-700">Local</span>
+              Servora<span className="text-brand-700">Bd</span>
             </span>
           </Link>
 
@@ -167,7 +167,7 @@ export default function Layout() {
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-600">
-          ShebaLocal · Verified local services in Dhaka · Trust scores are computed from recorded jobs, not self-reported.
+          ServoraBd · Verified local services in Dhaka · Trust scores are computed from recorded jobs, not self-reported.
         </div>
       </footer>
     </div>

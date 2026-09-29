@@ -9,7 +9,7 @@ import { Button, ErrorMessage, Field, PageHeader } from "../components/ui";
 import { flattenAreas, useAllServices, useLocationTree } from "../hooks/useCatalogue";
 import { dhakaLocalToIso, formatDate, formatTime, toDateInputValue } from "../lib/format";
 
-const DRAFT_KEY = "shebalocal-request-draft";
+const DRAFT_KEY = "servorabd-request-draft";
 
 const SLOTS = [
   { id: "morning", label: "Morning", start: "09:00", end: "12:00" },

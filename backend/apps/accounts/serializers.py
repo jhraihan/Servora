@@ -103,7 +103,7 @@ class SwitchRoleSerializer(serializers.Serializer):
         choices=[User.Role.CUSTOMER, User.Role.PROVIDER]
     )
 
-class ShebaTokenObtainPairSerializer(TokenObtainPairSerializer):
+class ServoraTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)

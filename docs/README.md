@@ -1,10 +1,10 @@
-# ShebaLocal — Documentation
+# ServoraBd — Documentation
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `ShebaLocal-PRD.pdf` | The product requirements document (40 pages, 15 sections). This is the deliverable. |
+| `ServoraBd-PRD.pdf` | The product requirements document (40 pages, 15 sections). This is the deliverable. |
 | `prd_content.py` | All PRD prose and tables, as structured data. Edit here to change the document. |
 | `build_prd.py` | Renders `prd_content.py` to PDF. Layout only — no content. |
 | `verify_trust_math.py` | Reference implementation of the section 7 trust algorithm, with assertions that reproduce every figure in the section 7.4 worked examples. |
@@ -16,7 +16,7 @@ pip install reportlab
 python docs/build_prd.py
 ```
 
-Output: `docs/ShebaLocal-PRD.pdf`
+Output: `docs/ServoraBd-PRD.pdf`
 
 ## Verifying the trust algorithm
 

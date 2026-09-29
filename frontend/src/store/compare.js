@@ -19,7 +19,7 @@ export const useCompareStore = create(
       clear: () => set({ ids: [] }),
     }),
     {
-      name: "shebalocal-compare",
+      name: "servorabd-compare",
       storage: createJSONStorage(() => localStorage),
     },
   ),

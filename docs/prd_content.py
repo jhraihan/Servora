@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Content source for the ShebaLocal PRD.
+Content source for the ServoraBd PRD.
 
 Kept separate from rendering so the document can be edited without touching
 layout code. Each entry in DOC is a (kind, payload) tuple consumed by
@@ -18,7 +18,7 @@ Kinds:
     spacer       -- height in points
 """
 
-TITLE = "ShebaLocal"
+TITLE = "ServoraBd"
 SUBTITLE = "Local Service Marketplace"
 DOC_TYPE = "Product Requirements Document"
 VERSION = "1.1"
@@ -31,7 +31,7 @@ DOC = [
     # ------------------------------------------------------------------
     ("h1", "1. Executive Summary"),
 
-    ("p", "ShebaLocal is a two-sided marketplace that connects customers who need "
+    ("p", "ServoraBd is a two-sided marketplace that connects customers who need "
           "home and device services with verified local service providers. The "
           "first market is urban Bangladesh, starting with Dhaka."),
 
@@ -44,9 +44,9 @@ DOC = [
           "credible way to prove they are skilled, so they compete on price against "
           "unqualified workers."),
 
-    ("p", "ShebaLocal solves both halves with a single mechanism: a <b>transparent, "
+    ("p", "ServoraBd solves both halves with a single mechanism: a <b>transparent, "
           "multi-factor Trust Score</b>. Rather than reducing a provider to one star "
-          "rating that is easy to fake and impossible to interpret, ShebaLocal "
+          "rating that is easy to fake and impossible to interpret, ServoraBd "
           "computes trust from measurable behavioural signals &mdash; completed jobs, "
           "completion rate, cancellation rate, median response time, review quality, "
           "and verification depth &mdash; and shows the customer exactly how the number "
@@ -77,7 +77,7 @@ DOC = [
         "Not a real-time dispatch system. Bookings are scheduled, not "
         "instantly hailed like a ride-share.",
         "Not an employment platform. Providers are independent contractors; "
-        "ShebaLocal does not manage employment, insurance, or taxation.",
+        "ServoraBd does not manage employment, insurance, or taxation.",
         "Not a product marketplace. Parts and materials are handled off-platform "
         "between customer and provider in v1.",
         "Not a multi-city or multi-country platform at launch. Geography is "
@@ -150,7 +150,7 @@ DOC = [
         ]
     }),
 
-    ("p", "ShebaLocal's Trust Score is designed specifically against these five "
+    ("p", "ServoraBd's Trust Score is designed specifically against these five "
           "failure modes. Section 7 specifies it in full."),
 
     ("pagebreak", None),
@@ -867,7 +867,7 @@ DOC = [
           "<font face='Courier'>apps/trust/factors.py</font>."),
 
     ("p", "<b>Kamal &mdash; experienced, newly joined.</b> Fourteen years of "
-          "off-platform experience, but only 4 jobs on ShebaLocal. Fully "
+          "off-platform experience, but only 4 jobs on ServoraBd. Fully "
           "verified including trade certificate. 4 of 4 completed, no "
           "cancellations, median response 8 minutes, 4 reviews averaging 4.9."),
     ("table", {
@@ -922,7 +922,7 @@ DOC = [
           "rating is <b>4.8</b> &mdash; on any conventional marketplace he sits "
           "just behind Kamal's 4.9 and looks excellent. In reality he abandons "
           "40% of the jobs he accepts, a quarter of those at the last minute, and "
-          "takes six hours to reply. ShebaLocal surfaces that: 53.5, 'Rising', "
+          "takes six hours to reply. ServoraBd surfaces that: 53.5, 'Rising', "
           "with a visible cancellation figure. The customer sees the risk "
           "<i>before</i> booking, not after. Note also that his review score "
           "(F6 = 91.7) is the <i>highest</i> of his six factors &mdash; the exact "
@@ -1002,7 +1002,7 @@ DOC = [
         "  Typical response time                   8 min",
         "  Customer rating              4.9  (4 reviews)",
         "  ------------------------------------------------",
-        "  New to ShebaLocal - fully verified, strong",
+        "  New to ServoraBd - fully verified, strong",
         "  early record.            [How trust is scored]",
     ]),
     ("p", "The 'How trust is scored' link opens a plain-language explanation of "
@@ -1529,17 +1529,17 @@ DOC = [
         "# 1. Database - run once, in psql as the postgres superuser.",
         "#    If psql is not on PATH, call it by full path, e.g.",
         "#    \"F:\\Postgres\\bin\\psql.exe\" -U postgres -h 127.0.0.1",
-        "CREATE DATABASE shebalocal;",
-        "CREATE USER sheba WITH PASSWORD '<app password>';",
-        "GRANT ALL PRIVILEGES ON DATABASE shebalocal TO sheba;",
-        "ALTER DATABASE shebalocal OWNER TO sheba;",
-        "\\c shebalocal",
+        "CREATE DATABASE servorabd;",
+        "CREATE USER servora WITH PASSWORD '<app password>';",
+        "GRANT ALL PRIVILEGES ON DATABASE servorabd TO servora;",
+        "ALTER DATABASE servorabd OWNER TO servora;",
+        "\\c servorabd",
         "-- Required on PostgreSQL 15+: CREATE on public is no longer",
         "-- granted to PUBLIC by default, so migrate would fail without",
         "-- this. No extensions are needed: one that only a superuser",
         "-- can create would make every backup need a superuser to restore.",
-        "GRANT ALL ON SCHEMA public TO sheba;",
-        "ALTER SCHEMA public OWNER TO sheba;",
+        "GRANT ALL ON SCHEMA public TO servora;",
+        "ALTER SCHEMA public OWNER TO servora;",
         "",
         "# 2. Backend",
         "cd backend",
@@ -1570,7 +1570,7 @@ DOC = [
         "#   Start in:  F:\\...\\backend",
         "",
         "# Or register from an elevated PowerShell prompt:",
-        "schtasks /create /tn \"ShebaLocal-ExpireRequests\" /sc minute /mo 15 ^",
+        "schtasks /create /tn \"ServoraBd-ExpireRequests\" /sc minute /mo 15 ^",
         "  /tr \"F:\\path\\backend\\venv\\Scripts\\python.exe F:\\path\\backend\\manage.py expire_requests\"",
     ]),
     ("p", "A <font face='Courier'>run_scheduled_jobs</font> convenience command "
@@ -1587,7 +1587,7 @@ DOC = [
         "SECRET_KEY=<generated, never reused across environments>",
         "ALLOWED_HOSTS=127.0.0.1,localhost",
         "",
-        "DATABASE_URL=postgres://sheba:<app password>@127.0.0.1:5432/shebalocal",
+        "DATABASE_URL=postgres://servora:<app password>@127.0.0.1:5432/servorabd",
         "",
         "EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend",
         "#  console backend in dev - prints email to the terminal, so no",
@@ -1635,7 +1635,7 @@ DOC = [
         "{ deploy/scripts/manage.sh crontab",
         "  echo '0 2 * * *  deploy/scripts/backup.sh'",
         "  echo '30 5 * * 0 deploy/scripts/restore-check.sh'",
-        "} | sudo crontab -u sheba -",
+        "} | sudo crontab -u servora -",
         "",
         "# The generated entries (paths shortened)",
         "*/15 * * * *  manage.py expire_requests",

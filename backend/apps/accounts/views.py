@@ -13,7 +13,7 @@ from apps.common.throttling import LoginRateThrottle
 from . import services
 from .serializers import (
     OTPSendSerializer, OTPVerifySerializer, RegisterSerializer,
-    ShebaTokenObtainPairSerializer, SwitchRoleSerializer, UserSerializer,
+    ServoraTokenObtainPairSerializer, SwitchRoleSerializer, UserSerializer,
 )
 
 User = get_user_model()
@@ -92,7 +92,7 @@ class OTPVerifyView(APIView):
 class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
-    serializer_class = ShebaTokenObtainPairSerializer
+    serializer_class = ServoraTokenObtainPairSerializer
 
 
 class LogoutView(APIView):

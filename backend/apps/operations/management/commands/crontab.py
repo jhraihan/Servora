@@ -7,12 +7,12 @@ class Command(BaseCommand):
     help = "Print crontab entries for every scheduled job."
 
     def add_arguments(self, parser):
-        parser.add_argument("--root", default="/srv/shebalocal/backend",
+        parser.add_argument("--root", default="/srv/servorabd/backend",
                             help="Backend directory on the server.")
         parser.add_argument("--python", default=None,
                             help="Python interpreter. Defaults to ROOT/venv/bin/python.")
         parser.add_argument("--settings-module", default="config.settings.prod")
-        parser.add_argument("--log", default="/var/log/shebalocal/cron.log")
+        parser.add_argument("--log", default="/var/log/servorabd/cron.log")
 
     def handle(self, *args, **options):
         root = options["root"].rstrip("/")

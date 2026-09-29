@@ -2,10 +2,10 @@
 set -euo pipefail
 umask 077
 
-BACKUP_DIR="${BACKUP_DIR:-/var/backups/shebalocal}"
-BACKEND_DIR="${BACKEND_DIR:-/srv/shebalocal/backend}"
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/servorabd}"
+BACKEND_DIR="${BACKEND_DIR:-/srv/servorabd/backend}"
 RETENTION_DAYS="${RETENTION_DAYS:-30}"
-export PGDATABASE="${PGDATABASE:-shebalocal}"
+export PGDATABASE="${PGDATABASE:-servorabd}"
 
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 database="$BACKUP_DIR/db-$stamp.dump"

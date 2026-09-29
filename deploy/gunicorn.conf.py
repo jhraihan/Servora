@@ -6,7 +6,7 @@ if os.environ.get("PORT"):
     bind = "0.0.0.0:%s" % os.environ["PORT"]
     forwarded_allow_ips = "*"
 else:
-    bind = "unix:/run/shebalocal/gunicorn.sock"
+    bind = "unix:/run/servorabd/gunicorn.sock"
     umask = 0o007
 
 workers = int(os.environ.get("WEB_CONCURRENCY", 3))

@@ -11,7 +11,7 @@ concurrency:
 
 env:
   SECRET_KEY: ci-only-key-not-used-anywhere-else-0123456789abcdefghijklmnop
-  DATABASE_URL: postgres://postgres:postgres@localhost:5432/shebalocal
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/servorabd
 
 jobs:
   backend:
@@ -21,7 +21,7 @@ jobs:
         image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: shebalocal
+          POSTGRES_DB: servorabd
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready
@@ -43,8 +43,8 @@ jobs:
       - name: Production settings pass the deploy checklist
         env:
           DJANGO_SETTINGS_MODULE: config.settings.prod
-          ALLOWED_HOSTS: shebalocal.example.com
-          CSRF_TRUSTED_ORIGINS: https://shebalocal.example.com
+          ALLOWED_HOSTS: servorabd.example.com
+          CSRF_TRUSTED_ORIGINS: https://servorabd.example.com
           EMAIL_HOST: smtp.example.com
           EMAIL_HOST_USER: ci
           EMAIL_HOST_PASSWORD: ci
@@ -78,7 +78,7 @@ jobs:
         image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: shebalocal
+          POSTGRES_DB: servorabd
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready

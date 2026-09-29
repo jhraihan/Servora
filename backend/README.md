@@ -1,6 +1,6 @@
-# ShebaLocal — Backend
+# ServoraBd — Backend
 
-Django 5 + DRF + PostgreSQL 18. See [`../docs/ShebaLocal-PRD.pdf`](../docs/ShebaLocal-PRD.pdf) for the full specification.
+Django 5 + DRF + PostgreSQL 18. See [`../docs/ServoraBd-PRD.pdf`](../docs/ServoraBd-PRD.pdf) for the full specification.
 
 ## Status
 
@@ -52,11 +52,11 @@ Tests run on `config.settings.test`, which swaps in a fast password hasher.
 Production-strength PBKDF2 costs about a second per hash, and with a user or
 two per test that made the suite take 14 minutes.
 
-The test runner creates and drops `test_shebalocal`, so the `sheba` role
+The test runner creates and drops `test_servorabd`, so the `servora` role
 needs `CREATEDB`:
 
 ```sql
-ALTER ROLE sheba CREATEDB;
+ALTER ROLE servora CREATEDB;
 ```
 
 ## Endpoints in M1

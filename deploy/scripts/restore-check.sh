@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BACKUP_DIR="${BACKUP_DIR:-/var/backups/shebalocal}"
-CHECK_DB="${PGDATABASE:-shebalocal}_restore_check"
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/servorabd}"
+CHECK_DB="${PGDATABASE:-servorabd}_restore_check"
 TABLES=(accounts_user accounts_providerprofile bookings_booking payments_ledgerentry reviews_review trust_trustsnapshot)
 
 latest="$(ls -1t "$BACKUP_DIR"/db-*.dump 2>/dev/null | head -n 1 || true)"

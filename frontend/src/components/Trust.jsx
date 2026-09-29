@@ -159,7 +159,7 @@ export function TrustBreakdown({ trust }) {
         {explained && (
           <div className="mt-3">
             <p className="text-sm text-slate-600">
-              Trust is calculated from what this provider has actually done on ShebaLocal, not from
+              Trust is calculated from what this provider has actually done on ServoraBd, not from
               a single star rating. Each factor is scored out of 100 and weighted:
             </p>
             <ul className="mt-2 divide-y divide-slate-100">

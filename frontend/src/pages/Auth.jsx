@@ -50,7 +50,7 @@ export function Login() {
           <Button type="submit" size="lg" loading={busy} className="w-full">Log in</Button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600">
-          New to ShebaLocal? <Link to="/register" className="font-semibold text-brand-700">Create an account</Link>
+          New to ServoraBd? <Link to="/register" className="font-semibold text-brand-700">Create an account</Link>
         </p>
       </div>
     </div>

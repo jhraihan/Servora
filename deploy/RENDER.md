@@ -1,4 +1,4 @@
-# Deploying ShebaLocal on Render
+# Deploying ServoraBd on Render
 
 Render runs the server for you: no Linux administration, no Nginx, no
 certificates. This is the easier of the two routes. For a plain Ubuntu server
@@ -12,12 +12,12 @@ instead, see [`DEPLOY.md`](DEPLOY.md).
 ## What you get
 
 ```
-Browser ──> shebalocal-web (static site, free)
+Browser ──> servorabd-web (static site, free)
               ├─ /                  index.html, landing page with its hero prerendered
               ├─ everything else    app.html, the React app
               └─ /api, /admin       forwarded to the API service, so the browser sees one origin
-            shebalocal-api (web service)   Django under gunicorn
-            shebalocal-db  (PostgreSQL 18)
+            servorabd-api (web service)   Django under gunicorn
+            servorabd-db  (PostgreSQL 18)
             two cron services              the seven scheduled jobs
             Cloudflare R2                  uploaded files
 ```
@@ -64,7 +64,7 @@ users: a sleeping service also means the scheduled jobs never run.
 
 In the Cloudflare dashboard, under R2:
 
-1. Create a bucket named `shebalocal`. **Leave public access disabled.**
+1. Create a bucket named `servorabd`. **Leave public access disabled.**
 2. Create an API token with **Object Read & Write**, limited to that bucket.
 3. Note the Access Key ID, the Secret Access Key, and the S3 endpoint, which
    looks like `https://<account-id>.r2.cloudflarestorage.com`.
@@ -85,16 +85,16 @@ Everything is defined in that file, so you do not create services by hand.
 ## 3. Fill in the settings
 
 `render.yaml` deliberately leaves secrets blank (`sync: false`). Open
-**shebalocal-api > Environment** and set:
+**servorabd-api > Environment** and set:
 
 | Key | Value |
 |---|---|
-| `ALLOWED_HOSTS` | `shebalocal-api.onrender.com` |
-| `CSRF_TRUSTED_ORIGINS` | `https://shebalocal-web.onrender.com` |
+| `ALLOWED_HOSTS` | `servorabd-api.onrender.com` |
+| `CSRF_TRUSTED_ORIGINS` | `https://servorabd-web.onrender.com` |
 | `CORS_ALLOWED_ORIGINS` | leave empty |
 | `S3_ENDPOINT_URL` | your R2 endpoint from step 1 |
 | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | from step 1 |
-| `S3_BUCKET_NAME` | `shebalocal` |
+| `S3_BUCKET_NAME` | `servorabd` |
 | `S3_PUBLIC_DOMAIN` | leave empty unless you attach a custom domain to the bucket |
 | `EMAIL_*` | your SMTP details |
 
@@ -111,7 +111,7 @@ lines in `render.yaml` to match, and redeploy.
 
 ## 4. First-time data
 
-Open **shebalocal-api > Shell**:
+Open **servorabd-api > Shell**:
 
 ```bash
 python manage.py seed_catalogue
@@ -126,7 +126,7 @@ creates accounts with a password published in this repository.
 
 ## 5. Check the site
 
-Visit `https://shebalocal-web.onrender.com`:
+Visit `https://servorabd-web.onrender.com`:
 
 - The landing page appears, and the headline shows before the page is interactive.
 - `/providers` loads (served by `app.html`, not a 404).
@@ -149,7 +149,7 @@ To take your own database copy from a machine with `pg_dump` installed, using
 the external connection string from the Render dashboard:
 
 ```bash
-pg_dump --format=custom --no-owner --dbname="<external connection string>" --file=shebalocal.dump
+pg_dump --format=custom --no-owner --dbname="<external connection string>" --file=servorabd.dump
 ```
 
 [`scripts/restore-check.sh`](scripts/restore-check.sh) verifies such a dump can
@@ -171,7 +171,7 @@ To check, set `EXPOSE_CLIENT_IDENT=True` in the API environment, wait for the
 redeploy, then run locally:
 
 ```bash
-python manage.py check_proxy_count https://shebalocal-api.onrender.com/api/v1/categories/
+python manage.py check_proxy_count https://servorabd-api.onrender.com/api/v1/categories/
 ```
 
 It sends one request with a forged header and one without, and compares what

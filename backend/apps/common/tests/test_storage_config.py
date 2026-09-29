@@ -6,7 +6,7 @@ import pytest
 PROD_ENV = {
     "SECRET_KEY": "test-key-for-settings-import-only",
     "DEBUG": "False",
-    "ALLOWED_HOSTS": "shebalocal.example.com",
+    "ALLOWED_HOSTS": "servorabd.example.com",
     "DATABASE_URL": "postgres://u:p@127.0.0.1:5432/db",
     "EMAIL_HOST": "smtp.example.com",
     "EMAIL_HOST_USER": "u",
@@ -17,7 +17,7 @@ PROD_ENV = {
     "S3_ENDPOINT_URL": "https://account.r2.cloudflarestorage.com",
     "S3_ACCESS_KEY_ID": "key",
     "S3_SECRET_ACCESS_KEY": "secret",
-    "S3_BUCKET_NAME": "shebalocal",
+    "S3_BUCKET_NAME": "servorabd",
 }
 
 
