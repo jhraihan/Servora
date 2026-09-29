@@ -50,7 +50,7 @@ class Command(BaseCommand):
             cat_created += created
             cat_updated += not created
 
-            for s_order, (s_name, pricing, pmin, pmax, minutes) in \
+            for s_order, (s_name, pricing, pmin, pmax, minutes, terms) in \
                     enumerate(services):
                 _, s_created = Service.objects.update_or_create(
                     category=category,
@@ -63,6 +63,7 @@ class Command(BaseCommand):
                         "suggested_price_max":
                             Decimal(pmax) if pmax is not None else None,
                         "typical_duration_minutes": minutes,
+                        "search_terms": terms,
                         "display_order": s_order,
                         "is_active": True,
                     },

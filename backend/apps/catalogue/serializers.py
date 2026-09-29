@@ -15,7 +15,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             "category", "category_slug", "category_name",
             "pricing_model",
             "suggested_price_min", "suggested_price_max",
-            "typical_duration_minutes",
+            "typical_duration_minutes", "search_terms",
         ]
 
 class ServiceCategorySerializer(serializers.ModelSerializer):

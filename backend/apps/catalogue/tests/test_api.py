@@ -23,8 +23,10 @@ def catalogue():
         suggested_price_min=Decimal("500"),
         suggested_price_max=Decimal("1200"),
     )
-    Service.objects.create(category=electrical, name="Switchboard repair")
-    Service.objects.create(category=plumbing, name="Tap repair")
+    Service.objects.create(category=electrical, name="Switchboard repair",
+                           search_terms="socket, plug point, spark")
+    Service.objects.create(category=plumbing, name="Tap repair",
+                           search_terms="dripping, faucet, water leak")
     return electrical, plumbing
 
 @pytest.fixture
@@ -85,6 +87,29 @@ def test_services_searchable_by_name(client, catalogue):
     resp = client.get(reverse("catalogue:service-list"), {"search": "fan"})
     assert resp.data["count"] == 1
     assert resp.data["results"][0]["name"] == "Ceiling fan installation"
+
+def test_services_found_by_the_words_customers_use(client, catalogue):
+    resp = client.get(reverse("catalogue:service-list"), {"search": "socket"})
+
+    assert resp.data["count"] == 1
+    assert resp.data["results"][0]["name"] == "Switchboard repair"
+
+
+def test_every_word_must_match_so_phrases_narrow_the_result(client, catalogue):
+    both = client.get(reverse("catalogue:service-list"), {"search": "repair"})
+    phrase = client.get(reverse("catalogue:service-list"),
+                        {"search": "dripping tap"})
+
+    assert both.data["count"] == 2
+    assert phrase.data["count"] == 1
+    assert phrase.data["results"][0]["name"] == "Tap repair"
+
+
+def test_a_category_name_finds_its_services(client, catalogue):
+    resp = client.get(reverse("catalogue:service-list"), {"search": "plumbing"})
+
+    assert [s["name"] for s in resp.data["results"]] == ["Tap repair"]
+
 
 def test_locations_filterable_by_level(client, geography):
     resp = client.get(reverse("catalogue:location-list"), {"level": "thana"})

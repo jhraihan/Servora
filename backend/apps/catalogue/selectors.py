@@ -31,9 +31,14 @@ def active_services(*, category_slug=None, search=None):
     if category_slug:
         qs = qs.filter(category__slug=category_slug)
     if search:
-        qs = qs.filter(
-            Q(name__icontains=search) | Q(description__icontains=search)
-        )
+        terms = [t for t in search.split() if len(t) > 1]
+        for term in terms or [search]:
+            qs = qs.filter(
+                Q(name__icontains=term)
+                | Q(description__icontains=term)
+                | Q(search_terms__icontains=term)
+                | Q(category__name__icontains=term)
+            )
     return qs
 
 def location_tree(*, level=None, parent_id=None):

@@ -59,6 +59,11 @@ class Service(TimeStampedModel):
 
     typical_duration_minutes = models.PositiveIntegerField(null=True,
                                                            blank=True)
+    search_terms = models.TextField(
+        blank=True,
+        help_text="Words customers use for this job, comma separated, "
+                  "so search matches symptoms and not only the official name.",
+    )
     display_order = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
