@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss(), landingPageRouting()],
     build: { manifest: true },
     server: {
+      host: "0.0.0.0",
       port: 5173,
       proxy: {
         "/api": { target: backend, changeOrigin: true },
