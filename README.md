@@ -6,6 +6,13 @@ plumbers, AC technicians and other tradespeople in Dhaka.
 The point of this project is not the booking flow — that is a well-understood
 problem. It is the **trust model**.
 
+
+<img width="1892" height="857" alt="Screenshot 2026-09-30 004244" src="https://github.com/user-attachments/assets/fe0494b5-057d-407f-acb4-bdab3a7d2fc1" />
+<img width="1892" height="855" alt="Screenshot 2026-09-30 004259" src="https://github.com/user-attachments/assets/8e35adf9-1ead-4f93-b92f-110fe2858c2b" />
+<img width="1892" height="857" alt="Screenshot 2026-09-30 004311" src="https://github.com/user-attachments/assets/ebd192d2-96b6-4edd-8774-c5316bb028ff" />
+<img width="1887" height="857" alt="Screenshot 2026-09-30 004324" src="https://github.com/user-attachments/assets/ebd06c32-c5e6-43fa-ad9b-07bd6b012b37" />
+
+
 ## The problem with star ratings
 
 A provider with one 5-star review outranks a provider with two hundred jobs
