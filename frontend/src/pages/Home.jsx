@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-import LocationSelect from "../components/LocationSelect";
-import { Button, ErrorMessage, PageLoader } from "../components/ui";
-import { useAllServices, useCategories } from "../hooks/useCatalogue";
+import ServiceSearch from "../components/ServiceSearch";
+import { ErrorMessage, PageLoader } from "../components/ui";
+import { useCategories } from "../hooks/useCatalogue";
 import HomeHero from "./HomeHero";
 
 const ICONS = {
@@ -27,56 +26,35 @@ const PROMISES = [
 ];
 
 export default function Home() {
-  const navigate = useNavigate();
   const { data: categories, isLoading, error } = useCategories();
-  const { data: services } = useAllServices();
-  const [serviceId, setServiceId] = useState("");
-  const [locationId, setLocationId] = useState(null);
-
-  function search(event) {
-    event.preventDefault();
-    const params = new URLSearchParams();
-    if (serviceId) params.set("service", serviceId);
-    if (locationId) params.set("location", locationId);
-    navigate(`/providers?${params.toString()}`);
-  }
 
   return (
     <div className="space-y-12">
       <HomeHero>
-        <form onSubmit={search} className="mt-8 grid gap-3 rounded-2xl bg-white p-3 text-slate-800 shadow-lg sm:grid-cols-[1fr_1fr_auto]">
-          <div>
-            <label htmlFor="home-service" className="sr-only">Service</label>
-            <select id="home-service" className="input" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
-              <option value="">What do you need?</option>
-              {(services ?? []).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — {s.categoryName}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="home-location" className="sr-only">Area</label>
-            <LocationSelect id="home-location" value={locationId} onChange={setLocationId} placeholder="Where?" />
-          </div>
-          <Button type="submit" size="lg">Find providers</Button>
-        </form>
+        <div className="mt-8 max-w-xl">
+          <ServiceSearch tone="dark" placeholder="Try “AC not cooling”" />
+        </div>
       </HomeHero>
 
       <section aria-labelledby="categories-heading">
-        <div className="mb-4 flex items-end justify-between">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <h2 id="categories-heading" className="section-title">Browse by category</h2>
-          <Link to="/services" className="text-sm font-semibold text-brand-700">All services</Link>
+          <Link to="/services" className="text-sm font-semibold text-brand-700">All 45 services</Link>
         </div>
         {isLoading && <PageLoader />}
         <ErrorMessage error={error} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {(categories ?? []).map((c) => (
-            <Link key={c.id} to={`/services/${c.slug}`} className="card group p-4 transition hover:border-brand-300 hover:shadow-md">
-              <span className="text-2xl" aria-hidden="true">{ICONS[c.icon] ?? "🛠️"}</span>
-              <p className="mt-2 font-semibold text-ink group-hover:text-brand-700">{c.name}</p>
-              <p className="text-xs text-slate-500">{c.serviceCount} services</p>
+            <Link
+              key={c.id}
+              to={`/services/${c.slug}`}
+              className="card group p-4 transition hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-2xl" aria-hidden="true">
+                {ICONS[c.icon] ?? "🛠️"}
+              </span>
+              <p className="mt-3 font-semibold text-ink group-hover:text-brand-700">{c.name}</p>
+              <p className="text-xs text-slate-600">{c.serviceCount} services</p>
             </Link>
           ))}
         </div>

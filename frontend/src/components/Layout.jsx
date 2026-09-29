@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import ServiceSearch from "./ServiceSearch";
 import { ROLE } from "../constants/domain";
 import { useSession } from "../hooks/useSession";
 import { useCompareStore } from "../store/compare";
@@ -43,6 +44,7 @@ export default function Layout() {
     setOpen(false);
   }, [location.pathname]);
 
+  const isHome = location.pathname === "/";
   const links = !isAuthenticated ? GUEST_LINKS : isProvider ? PROVIDER_LINKS : CUSTOMER_LINKS;
   const otherRole = isProvider ? ROLE.CUSTOMER : ROLE.PROVIDER;
   const canSwitch = user?.roles?.includes(otherRole);
@@ -65,7 +67,7 @@ export default function Layout() {
       >
         Skip to main content
       </a>
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
           <Link to={isProvider ? "/provider/dashboard" : "/"} className="flex items-center gap-2">
             <img src="/favicon.svg" alt="" className="h-8 w-8" />
@@ -73,6 +75,12 @@ export default function Layout() {
               Sheba<span className="text-brand-700">Local</span>
             </span>
           </Link>
+
+          {!isProvider && (
+            <div className="hidden min-w-0 flex-1 max-w-sm lg:block">
+              <ServiceSearch />
+            </div>
+          )}
 
           <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
             {links.map((l) => (
@@ -114,6 +122,11 @@ export default function Layout() {
 
         {open && (
           <div id="mobile-menu" className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
+            {!isProvider && (
+              <div className="mb-3">
+                <ServiceSearch onNavigate={() => setOpen(false)} />
+              </div>
+            )}
             <nav className="flex flex-col gap-1" aria-label="Mobile">
               {links.map((l) => (
                 <NavLink key={l.to} to={l.to} className={navClass}>
@@ -140,12 +153,20 @@ export default function Layout() {
         )}
       </header>
 
+      {!isProvider && !isHome && (
+        <div className="sticky top-16 z-20 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl lg:hidden">
+          <div className="mx-auto max-w-6xl">
+            <ServiceSearch />
+          </div>
+        </div>
+      )}
+
       <main id="main" tabIndex={-1} className="mx-auto min-h-[calc(100svh-4rem)] w-full max-w-6xl flex-1 px-4 py-6 focus:outline-none sm:py-10">
         <Outlet />
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-500">
+        <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-600">
           ShebaLocal · Verified local services in Dhaka · Trust scores are computed from recorded jobs, not self-reported.
         </div>
       </footer>

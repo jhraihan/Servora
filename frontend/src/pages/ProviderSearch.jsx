@@ -5,9 +5,10 @@ import { useSearchParams } from "react-router-dom";
 import { providers } from "../api/endpoints";
 import LocationSelect from "../components/LocationSelect";
 import { ProviderCard } from "../components/domain";
-import { Button, EmptyState, ErrorMessage, PageHeader, PageLoader } from "../components/ui";
+import { Button, ErrorMessage, PageHeader, PageLoader } from "../components/ui";
 import { TRUST_TIER, TRUST_TIER_LABEL } from "../constants/domain";
 import { useAllServices } from "../hooks/useCatalogue";
+import { Link } from "react-router-dom";
 
 const PAGE_SIZE = 10;
 
@@ -43,6 +44,11 @@ export default function ProviderSearch() {
   }
 
   const selectedService = (services ?? []).find((s) => String(s.id) === filters.service);
+  const siblings = selectedService
+    ? (services ?? []).filter(
+        (s) => s.categoryId === selectedService.categoryId && s.id !== selectedService.id,
+      )
+    : [];
   const activeCount = FILTER_KEYS.filter((k) => k !== "ordering" && filters[k]).length;
 
   return (
@@ -52,12 +58,25 @@ export default function ProviderSearch() {
         subtitle="Ranked by trust — measured from real jobs, not self-reported."
       />
 
+      {selectedService && siblings.length > 0 && (
+        <div className="mb-5 -mx-4 overflow-x-auto px-4 pb-1">
+          <div className="flex gap-2">
+            <span className="chip chip-active">{selectedService.name}</span>
+            {siblings.map((s) => (
+              <Link key={s.id} to={`/providers?service=${s.id}`} className="chip chip-idle">
+                {s.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setFiltersOpen((v) => !v)}
         aria-expanded={filtersOpen}
         aria-controls="search-filters"
-        className="mb-4 flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 lg:hidden"
+        className="mb-4 flex w-full items-center justify-between rounded-2xl bg-white/85 px-4 py-3 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 backdrop-blur-xl lg:hidden"
       >
         <span>Filters{activeCount > 0 && ` (${activeCount} active)`}</span>
         <span aria-hidden="true">{filtersOpen ? "▲" : "▼"}</span>
@@ -119,14 +138,39 @@ export default function ProviderSearch() {
           {isLoading ? (
             <PageLoader />
           ) : data?.results.length === 0 ? (
-            <EmptyState
-              title="No providers match yet"
-              body="Try another area or remove a filter. You can also post a request and let providers come to you."
-              action={<Button to={`/request-service${filters.service ? `?service=${filters.service}` : ""}`}>Post a request</Button>}
-            />
+            <div className="card p-6">
+              <h2 className="section-title">No one covers this yet</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                {activeCount > 1
+                  ? "Try removing a filter, or post a request and let providers come to you."
+                  : "Post a request and every matching provider nearby will see it."}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button to={`/request-service${filters.service ? `?service=${filters.service}` : ""}`}>
+                  Post a request
+                </Button>
+                {activeCount > 0 && (
+                  <Button variant="secondary" onClick={() => setParams(new URLSearchParams())}>
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+              {siblings.length > 0 && (
+                <div className="mt-6 border-t border-slate-200 pt-4">
+                  <p className="text-sm font-semibold text-ink">Related services with providers</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {siblings.slice(0, 6).map((s) => (
+                      <Link key={s.id} to={`/providers?service=${s.id}`} className="chip chip-idle">
+                        {s.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <>
-              <p className="mb-3 text-sm text-slate-500">
+              <p className="mb-3 text-sm text-slate-600">
                 {data.count} provider{data.count === 1 ? "" : "s"} {isFetching && "· updating…"}
               </p>
               <div className="space-y-3">

@@ -30,6 +30,31 @@ export function useAllServices() {
   });
 }
 
+export function useServiceSearch(term) {
+  const { data: services, isLoading } = useAllServices();
+  const query = term.trim().toLowerCase();
+
+  if (!query) return { matches: [], isLoading, isEmpty: false };
+
+  const words = query.split(/\s+/).filter(Boolean);
+  const scored = (services ?? [])
+    .map((service) => {
+      const name = service.name.toLowerCase();
+      const haystack = `${name} ${service.categoryName ?? ""} ${service.searchTerms ?? ""}`.toLowerCase();
+      if (!words.every((w) => haystack.includes(w))) return null;
+      const rank = name.startsWith(query) ? 0 : name.includes(query) ? 1 : 2;
+      return { service, rank };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.rank - b.rank || a.service.name.localeCompare(b.service.name));
+
+  return {
+    matches: scored.map((s) => s.service),
+    isLoading,
+    isEmpty: !isLoading && scored.length === 0,
+  };
+}
+
 export function flattenAreas(tree) {
   const rows = [];
   (tree ?? []).forEach((city) => {
