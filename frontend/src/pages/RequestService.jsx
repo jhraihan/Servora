@@ -18,7 +18,7 @@ const SLOTS = [
   { id: "evening", label: "Evening", start: "18:00", end: "21:00" },
 ];
 
-const STEPS = ["Service", "Where", "Problem", "When", "Who", "Confirm"];
+const STEPS = ["The job", "Where and when", "Confirm"];
 
 const EMPTY = {
   serviceId: null,
@@ -56,7 +56,7 @@ export default function RequestService() {
       date: saved.date || tomorrow(),
     };
   });
-  const [step, setStep] = useState(() => (params.get("service") ? 1 : 0));
+  const [step, setStep] = useState(0);
   const [offeredProviderId] = useState(() => draft.targetProviderId);
 
   const { data: services } = useAllServices();
@@ -110,11 +110,11 @@ export default function RequestService() {
   }
 
   const canContinue = [
-    Boolean(draft.serviceId),
-    Boolean(draft.locationId) && draft.address.trim().length >= 5,
-    draft.description.trim().length >= 10,
-    Boolean(draft.date) && draft.date >= toDateInputValue(new Date()),
-    true,
+    Boolean(draft.serviceId) && draft.description.trim().length >= 10,
+    Boolean(draft.locationId)
+      && draft.address.trim().length >= 5
+      && Boolean(draft.date)
+      && draft.date >= toDateInputValue(new Date()),
     true,
   ][step];
 
@@ -137,14 +137,19 @@ export default function RequestService() {
         }}
       >
         {step === 0 && (
-          <Field label="What do you need done?" htmlFor="rs-service">
-            <select id="rs-service" className="input" value={draft.serviceId ?? ""} onChange={(e) => update({ serviceId: Number(e.target.value) || null })} required>
-              <option value="">Choose a service</option>
-              {(services ?? []).map((s) => (
-                <option key={s.id} value={s.id}>{s.name} — {s.categoryName}</option>
-              ))}
-            </select>
-          </Field>
+          <>
+            <Field label="What do you need done?" htmlFor="rs-service">
+              <select id="rs-service" className="input" value={draft.serviceId ?? ""} onChange={(e) => update({ serviceId: Number(e.target.value) || null })} required>
+                <option value="">Choose a service</option>
+                {(services ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>{s.name} — {s.categoryName}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Describe the problem" htmlFor="rs-description" hint="What is wrong, and anything the provider should bring. At least 10 characters.">
+              <textarea id="rs-description" className="input" rows={4} value={draft.description} onChange={(e) => update({ description: e.target.value })} placeholder="e.g. The bedroom AC runs but does not cool. It is a 1.5 ton split unit." required />
+            </Field>
+          </>
         )}
 
         {step === 1 && (
@@ -155,17 +160,6 @@ export default function RequestService() {
             <Field label="Full address" htmlFor="rs-address" hint="Only shared with the provider who accepts your job.">
               <textarea id="rs-address" className="input" rows={2} value={draft.address} onChange={(e) => update({ address: e.target.value })} placeholder="House, road, flat, landmark" required />
             </Field>
-          </>
-        )}
-
-        {step === 2 && (
-          <Field label="Describe the problem" htmlFor="rs-description" hint="What is wrong, and anything the provider should bring. At least 10 characters.">
-            <textarea id="rs-description" className="input" rows={5} value={draft.description} onChange={(e) => update({ description: e.target.value })} placeholder="e.g. The bedroom AC runs but does not cool. It is a 1.5 ton split unit." required />
-          </Field>
-        )}
-
-        {step === 3 && (
-          <>
             <Field label="Date" htmlFor="rs-date">
               <input id="rs-date" type="date" className="input" min={toDateInputValue(new Date())} value={draft.date} onChange={(e) => update({ date: e.target.value })} required />
             </Field>
@@ -173,7 +167,7 @@ export default function RequestService() {
               <legend className="label">Preferred time</legend>
               <div className="grid grid-cols-2 gap-2">
                 {SLOTS.map((s) => (
-                  <label key={s.id} className={`cursor-pointer rounded-xl border p-3 text-sm ${draft.slot === s.id ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-300"}`}>
+                  <label key={s.id} className={`cursor-pointer rounded-2xl border p-3 text-sm ${draft.slot === s.id ? "border-brand-600 bg-brand-50 text-brand-800" : "border-slate-300"}`}>
                     <input type="radio" name="slot" value={s.id} checked={draft.slot === s.id} onChange={() => update({ slot: s.id })} className="sr-only" />
                     <span className="block font-semibold">{s.label}</span>
                     <span className="text-xs">{formatTime(s.start)} – {formatTime(s.end)}</span>
@@ -184,48 +178,47 @@ export default function RequestService() {
           </>
         )}
 
-        {step === 4 && (
-          <fieldset className="space-y-2">
-            <legend className="label">Who should see this request?</legend>
-            {offeredProviderId && target.data && (
-              <label className={`flex cursor-pointer gap-3 rounded-xl border p-4 ${draft.targetProviderId ? "border-brand-600 bg-brand-50" : "border-slate-300"}`}>
-                <input type="radio" name="who" checked={Boolean(draft.targetProviderId)} onChange={() => update({ targetProviderId: offeredProviderId })} />
+        {step === 2 && (
+          <>
+            <fieldset className="space-y-2">
+              <legend className="label">Who should see this request?</legend>
+              {offeredProviderId && target.data && (
+                <label className={`flex cursor-pointer gap-3 rounded-2xl border p-4 ${draft.targetProviderId ? "border-brand-600 bg-brand-50" : "border-slate-300"}`}>
+                  <input type="radio" name="who" checked={Boolean(draft.targetProviderId)} onChange={() => update({ targetProviderId: offeredProviderId })} />
+                  <span>
+                    <span className="block font-semibold text-ink">Only {target.data.displayName}</span>
+                    <span className="text-sm text-slate-600">
+                      {targetOffering ? <>Their price for this: <Money value={targetOffering.price} /></> : "They do not list this service — they may decline."}
+                    </span>
+                  </span>
+                </label>
+              )}
+              <label className={`flex cursor-pointer gap-3 rounded-2xl border p-4 ${!draft.targetProviderId ? "border-brand-600 bg-brand-50" : "border-slate-300"}`}>
+                <input type="radio" name="who" checked={!draft.targetProviderId} onChange={() => update({ targetProviderId: null })} />
                 <span>
-                  <span className="block font-semibold text-ink">Only {target.data.displayName}</span>
+                  <span className="block font-semibold text-ink">All matching providers in {area?.label ?? "your area"}</span>
                   <span className="text-sm text-slate-600">
-                    {targetOffering ? <>Their price for this: <Money value={targetOffering.price} /></> : "They do not list this service — they may decline."}
+                    {matches.data ? `${matches.data.count} provider${matches.data.count === 1 ? "" : "s"} can see it. The first to accept gets the job.` : "The first provider to accept gets the job."}
                   </span>
                 </span>
               </label>
-            )}
-            <label className={`flex cursor-pointer gap-3 rounded-xl border p-4 ${!draft.targetProviderId ? "border-brand-600 bg-brand-50" : "border-slate-300"}`}>
-              <input type="radio" name="who" checked={!draft.targetProviderId} onChange={() => update({ targetProviderId: null })} />
-              <span>
-                <span className="block font-semibold text-ink">All matching providers in {area?.label ?? "your area"}</span>
-                <span className="text-sm text-slate-600">
-                  {matches.data ? `${matches.data.count} provider${matches.data.count === 1 ? "" : "s"} can see it. The first to accept gets the job.` : "The first provider to accept gets the job."}
-                </span>
-              </span>
-            </label>
-          </fieldset>
-        )}
+            </fieldset>
 
-        {step === 5 && (
-          <dl className="divide-y divide-slate-100 text-sm">
-            {[
-              ["Service", service?.name],
-              ["Area", area?.label],
-              ["Address", draft.address],
-              ["Problem", draft.description],
-              ["When", `${formatDate(draft.date)}, ${slot.label.toLowerCase()} (${formatTime(slot.start)}–${formatTime(slot.end)})`],
-              ["Sent to", draft.targetProviderId ? target.data?.displayName : "All matching providers"],
-            ].map(([k, v]) => (
-              <div key={k} className="grid grid-cols-[110px_1fr] gap-2 py-2.5">
-                <dt className="text-slate-500">{k}</dt>
-                <dd className="whitespace-pre-line text-ink">{v}</dd>
-              </div>
-            ))}
-          </dl>
+            <dl className="divide-y divide-slate-100 rounded-2xl bg-slate-50/70 px-4 text-sm">
+              {[
+                ["Service", service?.name],
+                ["Problem", draft.description],
+                ["Area", area?.label],
+                ["Address", draft.address],
+                ["When", `${formatDate(draft.date)}, ${slot.label.toLowerCase()} (${formatTime(slot.start)}–${formatTime(slot.end)})`],
+              ].map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[110px_1fr] gap-2 py-2.5">
+                  <dt className="text-slate-600">{k}</dt>
+                  <dd className="whitespace-pre-line text-ink">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </>
         )}
 
         <ErrorMessage error={submit.error} />
