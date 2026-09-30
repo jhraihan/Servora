@@ -67,7 +67,7 @@ export default function Layout() {
       >
         Skip to main content
       </a>
-      <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-white/50 bg-white/55 backdrop-blur-2xl backdrop-saturate-150">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
           <Link to={isProvider ? "/provider/dashboard" : "/"} className="flex items-center gap-2">
             <img src="/favicon.svg" alt="" className="h-8 w-8" />
@@ -121,7 +121,7 @@ export default function Layout() {
         </div>
 
         {open && (
-          <div id="mobile-menu" className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
+          <div id="mobile-menu" className="border-t border-white/50 bg-white/80 px-4 py-3 backdrop-blur-2xl md:hidden">
             {!isProvider && (
               <div className="mb-3">
                 <ServiceSearch onNavigate={() => setOpen(false)} />
@@ -154,7 +154,7 @@ export default function Layout() {
       </header>
 
       {!isProvider && !isHome && (
-        <div className="sticky top-16 z-20 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-xl lg:hidden">
+        <div className="sticky top-16 z-20 border-b border-white/50 bg-white/55 px-4 py-3 backdrop-blur-2xl backdrop-saturate-150 lg:hidden">
           <div className="mx-auto max-w-6xl">
             <ServiceSearch />
           </div>
@@ -165,7 +165,7 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-white/50 bg-white/50 backdrop-blur-2xl">
         <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-slate-600">
           ServoraBd · Verified local services in Dhaka · Trust scores are computed from recorded jobs, not self-reported.
         </div>

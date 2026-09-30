@@ -82,6 +82,64 @@ StarInput.propTypes = {
   name: PropTypes.string.isRequired,
 };
 
+const AVATAR_GRADIENTS = [
+  "from-emerald-400 to-teal-600",
+  "from-sky-400 to-indigo-600",
+  "from-amber-400 to-orange-600",
+  "from-violet-400 to-purple-600",
+  "from-rose-400 to-pink-600",
+  "from-cyan-400 to-blue-600",
+];
+
+export function ProviderAvatar({ name, score, size = 52 }) {
+  const initials = name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+  const hue = [...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_GRADIENTS.length;
+  const pct = Math.max(0, Math.min(100, Math.round(Number(score ?? 0))));
+  const r = size / 2 - 3;
+  const circumference = 2 * Math.PI * r;
+
+  return (
+    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className="absolute inset-0 -rotate-90"
+        aria-hidden="true"
+      >
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(18,38,26,0.10)" strokeWidth="3" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="currentColor"
+          className="text-brand-600"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - pct / 100)}
+        />
+      </svg>
+      <span
+        className={`m-[7px] flex flex-1 items-center justify-center rounded-full bg-gradient-to-br ${AVATAR_GRADIENTS[hue]} text-sm font-bold text-white`}
+      >
+        {initials}
+      </span>
+    </span>
+  );
+}
+
+ProviderAvatar.propTypes = {
+  name: PropTypes.string.isRequired,
+  score: moneyType,
+  size: PropTypes.number,
+};
+
 export function ProviderCard({ provider, serviceId }) {
   const inCompare = useCompareStore((s) => s.ids.includes(provider.id));
   const compareFull = useCompareStore((s) => s.ids.length >= COMPARE_LIMIT);
@@ -89,17 +147,27 @@ export function ProviderCard({ provider, serviceId }) {
   const areas = provider.serviceAreas.map((a) => a.location?.name).filter(Boolean);
   const profileLink = serviceId ? `/providers/${provider.id}?service=${serviceId}` : `/providers/${provider.id}`;
 
+  const fast = provider.medianResponseSeconds != null && provider.medianResponseSeconds <= 1800;
+  const proven = provider.jobsCompleted >= 20;
+
   return (
-    <article className="card flex flex-col gap-4 p-5 sm:flex-row sm:items-start" data-testid="provider-card">
+    <article className="card flex flex-col gap-4 p-5 transition hover:-translate-y-0.5 sm:flex-row sm:items-start" data-testid="provider-card">
       <div className="flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link to={profileLink} className="text-lg font-semibold text-ink hover:text-brand-700">
-            {provider.displayName}
-          </Link>
-          {!provider.identityVerified && <Badge tone="warn">Unverified</Badge>}
-        </div>
-        <div className="mt-2">
-          <TrustBadge score={provider.trustScore} tier={provider.trustTier} />
+        <div className="flex items-start gap-3">
+          <ProviderAvatar name={provider.displayName} score={provider.trustScore} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link to={profileLink} className="text-lg font-semibold text-ink hover:text-brand-700">
+                {provider.displayName}
+              </Link>
+              {!provider.identityVerified && <Badge tone="warn">Unverified</Badge>}
+            </div>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <TrustBadge score={provider.trustScore} tier={provider.trustTier} />
+              {fast && <Badge tone="good">Fast replies</Badge>}
+              {proven && <Badge tone="good">{provider.jobsCompleted} jobs done</Badge>}
+            </div>
+          </div>
         </div>
         <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
           <div>

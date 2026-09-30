@@ -2,9 +2,10 @@ import PropTypes from "prop-types";
 
 export default function HomeHero({ children }) {
   return (
-    <section className="on-dark surface-forest relative overflow-hidden rounded-4xl px-5 py-12 sm:px-10 sm:py-16">
-      <div aria-hidden="true" className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-brand-300/20 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -left-12 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
+    <section className="on-dark surface-forest relative overflow-hidden rounded-4xl px-5 py-12 shadow-[0_28px_70px_-30px_rgba(12,32,17,0.75)] sm:px-10 sm:py-16">
+      <div aria-hidden="true" className="pointer-events-none absolute -top-28 -right-20 h-72 w-72 rounded-full bg-cyan-300/25 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-lime-300/20 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute top-1/3 left-1/2 h-56 w-56 rounded-full bg-violet-400/15 blur-3xl" />
       <div className="relative">
         <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-white/90 uppercase backdrop-blur-xl">
           Dhaka&apos;s verified tradespeople

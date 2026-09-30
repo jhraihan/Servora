@@ -16,7 +16,7 @@
   --color-brand-950: #0c2011;
 
   --color-ink: #12261a;
-  --color-canvas: #f4f8f3;
+  --color-canvas: #eef4ec;
 
   --radius-4xl: 2rem;
   --radius-5xl: 2.75rem;
@@ -29,10 +29,24 @@
 
   body {
     @apply bg-canvas text-slate-800 antialiased;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(46rem 30rem at 8% -6%, rgba(79, 143, 85, 0.30), transparent 60%),
+      radial-gradient(34rem 26rem at 96% 4%, rgba(56, 189, 248, 0.22), transparent 62%),
+      radial-gradient(38rem 30rem at 82% 58%, rgba(167, 139, 250, 0.20), transparent 62%),
+      radial-gradient(34rem 28rem at 12% 92%, rgba(251, 191, 36, 0.20), transparent 62%);
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand-600;
+    @apply outline-2 outline-offset-2 outline-brand-700;
   }
 
   .on-dark :focus-visible {
@@ -42,11 +56,15 @@
 
 @layer components {
   .card {
-    @apply rounded-3xl border border-white/70 bg-white/85 shadow-[0_10px_34px_-20px_rgba(18,38,26,0.45)] backdrop-blur-xl;
+    @apply rounded-3xl border border-white/60 bg-white/60 shadow-[0_8px_32px_-12px_rgba(18,38,26,0.28)] backdrop-blur-2xl backdrop-saturate-150;
+  }
+
+  .glass-raised {
+    @apply rounded-3xl border border-white/70 bg-white/72 shadow-[0_16px_44px_-18px_rgba(18,38,26,0.36)] backdrop-blur-2xl backdrop-saturate-150;
   }
 
   .glass-dark {
-    @apply rounded-3xl border border-white/15 bg-white/10 backdrop-blur-xl;
+    @apply rounded-3xl border border-white/20 bg-white/10 backdrop-blur-2xl backdrop-saturate-150;
   }
 
   .surface-forest {
@@ -54,7 +72,7 @@
   }
 
   .input {
-    @apply block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
+    @apply block w-full rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-base text-slate-900 backdrop-blur-xl placeholder:text-slate-500 focus:border-brand-600 focus:bg-white/90 focus:ring-2 focus:ring-brand-200 focus:outline-none disabled:bg-slate-100/70;
   }
 
   .label {
@@ -74,11 +92,11 @@
   }
 
   .chip-idle {
-    @apply border border-slate-300 bg-white/80 text-slate-700 hover:border-brand-400 hover:text-brand-800;
+    @apply border border-white/70 bg-white/60 text-slate-700 backdrop-blur-xl hover:bg-white/85 hover:text-brand-800;
   }
 
   .chip-active {
-    @apply bg-ink text-white;
+    @apply bg-ink text-white shadow-lg;
   }
 
   .fab {
