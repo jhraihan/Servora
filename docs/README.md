@@ -8,6 +8,10 @@
 | `prd_content.py` | All PRD prose and tables, as structured data. Edit here to change the document. |
 | `build_prd.py` | Renders `prd_content.py` to PDF. Layout only — no content. |
 | `verify_trust_math.py` | Reference implementation of the section 7 trust algorithm, with assertions that reproduce every figure in the section 7.4 worked examples. |
+| `ServoraBd-Guide.pdf` | Engineering & interview guide — how to run the system, how every layer works, and why each decision was made. |
+| `guide_content.py` / `build_guide.py` | Content and renderer for the guide, same split as the PRD. |
+| `ServoraBd-Render-Deployment.pdf` | Record of how the live site was deployed on Render, including the failed blueprint attempts and outstanding items. |
+| `deploy_content.py` / `build_deploy.py` | Content and renderer for the deployment record. |
 
 ## Rebuilding the PDF
 
@@ -17,6 +21,13 @@ python docs/build_prd.py
 ```
 
 Output: `docs/ServoraBd-PRD.pdf`
+
+The guide and the deployment record build the same way:
+
+```bash
+python docs/build_guide.py     # -> docs/ServoraBd-Guide.pdf
+python docs/build_deploy.py    # -> docs/ServoraBd-Render-Deployment.pdf
+```
 
 ## Verifying the trust algorithm
 

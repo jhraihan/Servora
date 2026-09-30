@@ -13,6 +13,54 @@ problem. It is the **trust model**.
 <img width="1887" height="857" alt="Screenshot 2026-09-30 004324" src="https://github.com/user-attachments/assets/ebd06c32-c5e6-43fa-ad9b-07bd6b012b37" />
 
 
+## What it is
+
+Hiring a tradesperson in Dhaka runs on phone numbers passed between
+neighbours. You get a name, you get a rate quoted over the phone, and you
+find out whether the person is any good once they are already in your
+kitchen. If they do not turn up, there is no record of it — the next
+customer hears the same recommendation you did.
+
+ServoraBd puts that whole exchange on a platform and, more importantly,
+keeps a record of it. Customers browse by service and area, see what a job
+should cost before they commit, and book a specific provider for a specific
+day. Providers get a profile, control over the areas and hours they work,
+and a verification badge that means something. Every step of the job —
+requested, accepted, started, finished, cancelled — is a recorded event
+rather than a phone call nobody can audit.
+
+## What it does
+
+- **Search and discovery.** Filter by category, area, date and price;
+  results are ranked by trust, not by who paid for placement.
+- **Provider profiles.** Service areas, weekly availability, price ranges,
+  a full trust breakdown, and verification tiers from phone-only through
+  national ID and trade certificate.
+- **Booking lifecycle.** A state machine — requested → accepted → in
+  progress → completed, with declines, cancellations and automatic
+  expiry — so the platform knows what actually happened on every job.
+- **Double-blind reviews.** Neither side sees the other's review until both
+  have submitted or fourteen days pass, which removes the retaliation that
+  makes ordinary marketplace ratings so uniformly positive.
+- **Cash settlement.** Payment is cash on completion, the way this market
+  already works. The platform records the payment, computes its commission,
+  and keeps an append-only ledger that reconciles against every booking.
+- **Trust scoring.** Six factors recomputed from recorded platform events,
+  explained below and visible to customers as a breakdown rather than a
+  single opaque number.
+
+## The problem it solves
+
+A marketplace is only useful if the ranking can be believed. The hard part
+is not taking bookings — it is answering *which of these eleven
+electricians should I let into my house*, using evidence the provider
+cannot simply assert about themselves. Every factor in the trust score is
+derived from something the platform observed: a verification document that
+was checked, a booking that was accepted and then abandoned, the minutes
+between a request and a reply. Nothing is self-reported.
+
+Which brings us to why the usual answer does not work.
+
 ## The problem with star ratings
 
 A provider with one 5-star review outranks a provider with two hundred jobs
@@ -117,14 +165,27 @@ added an audit that fails the suite if any API route forgets its permission
 check, and upgraded to Django 5.2 LTS (clearing 37 known vulnerabilities).
 Scheduled jobs record every run, and admins can see a job that has stopped.
 
-The site is not deployed yet. There are two routes, both checked locally but
-neither yet run for real, and each says which parts are unverified:
+The site runs on Render's free tier, as a static site and an API service
+created by hand after the blueprint was rejected twice. What that costs is
+worth knowing before you visit: no SMTP is configured, so login codes cannot
+be sent and **nobody can register or sign in** — browsing works, and the
+admin account is password-based and unaffected. The free plan also allows no
+cron services, so the seven scheduled jobs (booking expiry, review reveal,
+trust recompute) only run when invoked by hand; uploads do not survive a
+deploy; and the service sleeps after fifteen minutes, making the first
+request take about fifty seconds. The free database is deleted 30 days after
+creation, with no backups.
+[`docs/ServoraBd-Render-Deployment.pdf`](docs/ServoraBd-Render-Deployment.pdf)
+records what was actually done, including the two failed attempts and what is
+still outstanding.
+
+[`render.yaml`](render.yaml) already describes the paid arrangement that
+removes those limits, and there are two documented routes onward:
 [`deploy/RENDER.md`](deploy/RENDER.md) for Render, which needs no Linux
-administration and is driven by [`render.yaml`](render.yaml), and
-[`deploy/DEPLOY.md`](deploy/DEPLOY.md) for a plain Ubuntu server with Nginx,
-gunicorn, systemd, cron and backups. CI (GitHub Actions) runs the
-backend suite against PostgreSQL 18, the frontend checks, both golden paths
-with the accessibility scan, and the dependency audits on every push.
+administration, and [`deploy/DEPLOY.md`](deploy/DEPLOY.md) for a plain Ubuntu
+server with Nginx, gunicorn, systemd, cron and backups. CI (GitHub Actions)
+runs the backend suite against PostgreSQL 18, the frontend checks, both golden
+paths with the accessibility scan, and the dependency audits on every push.
 
 ## Getting started
 
@@ -172,8 +233,10 @@ render.yaml Render blueprint: database, API, cron jobs, static site
 ## Documentation
 
 - [Product Requirements Document](docs/ServoraBd-PRD.pdf) — 40 pages, the full spec
+- [Engineering & Interview Guide](docs/ServoraBd-Guide.pdf) — how to run it, how each layer works, why each decision was made
 - [`backend/README.md`](backend/README.md) — running it, endpoints, design notes
 - [`frontend/README.md`](frontend/README.md) — running it, checks, accessibility, performance
+- [Render deployment record](docs/ServoraBd-Render-Deployment.pdf) — how the live site was actually deployed, and what is outstanding
 - [`deploy/RENDER.md`](deploy/RENDER.md) — deploying on Render (the simpler route)
 - [`deploy/DEPLOY.md`](deploy/DEPLOY.md) — deploying on your own Ubuntu server
 - [`docs/README.md`](docs/README.md) — how the PRD is generated and verified
