@@ -1,19 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Content source for the ServoraBd Render deployment steps.
+Content source for the ServoraBd Render deployment record.
 
 Same (kind, payload) format as guide_content.py, rendered by build_deploy.py.
 """
 
 TITLE = "ServoraBd"
 SUBTITLE = "Local Service Marketplace"
-DOC_TYPE = "Render Deployment Steps"
+DOC_TYPE = "Render Deployment Record"
 VERSION = "1.0"
-STATUS = "Free tier / temporary database"
+STATUS = "Live on the free tier"
 DATE = "30 September 2026"
 AUTHOR = "Jahid H. R."
 
-PITCH = "Free plan, temporary database. Eight steps."
+PITCH = (
+    "How this project was put on the internet: the code changes it needed, "
+    "the two routes that failed, the one that worked, and what is still "
+    "outstanding."
+)
 
 DOC = []
 
@@ -22,134 +26,492 @@ def add(*items):
     DOC.extend(items)
 
 
+# ======================================================================
+# 1. Result
+# ======================================================================
 add(
-    ("h1", "Deploy to Render"),
+    ("h1", "1. What was deployed"),
 
-    ("h2", "1. Push to GitHub"),
+    ("table", {
+        "cols": ["Piece", "Address", "Plan"],
+        "widths": [0.22, 0.52, 0.26],
+        "rows": [
+            ["Static site",
+             "<font face='Courier'>servorabd-web.onrender.com</font>",
+             "Free"],
+            ["API",
+             "<font face='Courier'>servorabd-api.onrender.com</font>",
+             "Free, sleeps when idle"],
+            ["Database", "PostgreSQL 18, Singapore",
+             "Free, <b>deleted after 30 days</b>"],
+        ],
+    }),
+
+    ("p", "Verified live: <font face='Courier'>/healthz/</font> returns "
+          "<font face='Courier'>{\"status\": \"ok\", \"database\": \"ok\"}</font>, "
+          "and the site serves 8 categories, 45 services and 38 locations "
+          "through the API. Deployed from commit "
+          "<font face='Courier'>36d4190</font> on "
+          "<font face='Courier'>main</font>."),
+
+    ("h2", "1.1 The shape of it"),
 
     ("code", [
-        "git add .",
-        "git commit -m \"Add free-tier Render blueprint\"",
-        "git push origin main",
+        "Browser",
+        "   |",
+        "   v",
+        "servorabd-web  (static site)",
+        "   |  /                  index.html, hero prerendered",
+        "   |  /providers, /...   app.html, the React app",
+        "   |  /api, /admin,      rewritten to the API below,",
+        "   |  /static            so the browser sees one origin",
+        "   v",
+        "servorabd-api  (web service)   Django + gunicorn",
+        "   |",
+        "   v",
+        "servorabd-db   (PostgreSQL 18)",
     ]),
 
-    ("h2", "2. Create the services"),
+    ("p", "The browser only ever talks to the static site. It forwards "
+          "<font face='Courier'>/api</font>, "
+          "<font face='Courier'>/admin</font> and "
+          "<font face='Courier'>/static</font> to Django behind the scenes, "
+          "which is why no CORS configuration was needed anywhere."),
 
-    ("numbers", [
-        "<font face='Courier'>dashboard.render.com</font> &gt; <b>New</b> &gt; "
-        "<b>Blueprint</b>",
-        "Pick your repository.",
-        "Set <b>Blueprint file</b> to "
-        "<font face='Courier'>render-free.yaml</font> &mdash; not "
-        "<font face='Courier'>render.yaml</font>, which is paid.",
-        "<b>Apply</b>. Expect 3 free services and no price. Wait for the "
-        "build.",
+    ("pagebreak", None),
+)
+
+
+# ======================================================================
+# 2. Code changes
+# ======================================================================
+add(
+    ("h1", "2. What had to change in the code"),
+
+    ("p", "The repository already had a "
+          "<font face='Courier'>render.yaml</font> and deployment notes, but "
+          "it would not have survived a first deploy. Five things were fixed, "
+          "all in commit <font face='Courier'>36d4190</font>."),
+
+    ("h2", "2.1 The build would have crashed"),
+
+    ("p", "<font face='Courier'>config/settings/prod.py</font> required "
+          "<font face='Courier'>EMAIL_HOST</font>, "
+          "<font face='Courier'>EMAIL_HOST_USER</font>, "
+          "<font face='Courier'>EMAIL_HOST_PASSWORD</font>, "
+          "<font face='Courier'>DEFAULT_FROM_EMAIL</font> and the "
+          "<font face='Courier'>S3_*</font> keys. The blueprint marked every "
+          "one of them <font face='Courier'>sync: false</font>, meaning unset "
+          "until filled in by hand, so Django raised "
+          "<font face='Courier'>ImproperlyConfigured</font> before serving "
+          "anything. They now have defaults: with no SMTP the mail backend "
+          "discards messages instead of refusing to start, and with no bucket "
+          "the storage backend falls back to local disk."),
+
+    ("h2", "2.2 The health check could never have passed"),
+
+    ("p", "<font face='Courier'>healthCheckPath</font> pointed at "
+          "<font face='Courier'>/api/v1/categories/</font>, but "
+          "<font face='Courier'>SECURE_SSL_REDIRECT</font> is on, so "
+          "Render&rsquo;s internal HTTP probe received a "
+          "<font face='Courier'>301</font> and the service would have been "
+          "marked unhealthy forever. A "
+          "<font face='Courier'>/healthz/</font> endpoint was added &mdash; it "
+          "also runs <font face='Courier'>SELECT 1</font> against the database "
+          "&mdash; and exempted from the redirect via "
+          "<font face='Courier'>SECURE_REDIRECT_EXEMPT</font>. Confirmed: "
+          "<font face='Courier'>/healthz/</font> answers 200 over plain HTTP "
+          "while every other path still returns 301."),
+
+    ("h2", "2.3 Every request would have returned 400"),
+
+    ("p", "<font face='Courier'>ALLOWED_HOSTS</font> was empty on a fresh "
+          "deploy. It now falls back to Render&rsquo;s own "
+          "<font face='Courier'>RENDER_EXTERNAL_HOSTNAME</font>, which also "
+          "feeds <font face='Courier'>CSRF_TRUSTED_ORIGINS</font>. This is why "
+          "no host configuration was needed during the deploy."),
+
+    ("h2", "2.4 Two smaller fixes"),
+
+    ("bullets", [
+        "A <font face='Courier'>/media/*</font> rewrite was missing. The dev "
+        "proxy had one; production did not, so uploaded photos would 404 "
+        "whenever object storage is off &mdash; which is the case on free.",
+        "<font face='Courier'>WEB_CONCURRENCY</font> was added. The gunicorn "
+        "config defaults to 3 workers, which is tight on a 512&nbsp;MB "
+        "instance.",
     ]),
 
-    ("h2", "3. Check the API"),
+    ("h2", "2.5 Checked and deliberately left alone"),
 
-    ("p", "Open <font face='Courier'>https://servorabd-api.onrender.com"
-          "/healthz/</font> &mdash; expect "
-          "<font face='Courier'>{\"status\": \"ok\", \"database\": \"ok\"}</font>. "
-          "First load takes ~50s while the service wakes."),
+    ("p", "The strict Content-Security-Policy was briefly relaxed for "
+          "Tailwind, then reverted: the built bundle contains no inline "
+          "script, no inline style and no runtime stylesheet injection, so "
+          "<font face='Courier'>style-src 'self'</font> holds. The full "
+          "backend test suite passes with all of the above."),
 
-    ("h2", "4. Seed the data"),
+    ("pagebreak", None),
+)
 
-    ("p", "Copy the <b>External Database URL</b> from "
-          "<b>servorabd-db</b>, then from "
-          "<font face='Courier'>backend/</font>:"),
+
+# ======================================================================
+# 3. The routes that failed
+# ======================================================================
+add(
+    ("h1", "3. Two routes that did not work"),
+
+    ("p", "Worth recording, because both cost time and neither is obvious."),
+
+    ("h2", "3.1 Blueprint, first attempt: a schema error"),
+
+    ("p", "Render rejected "
+          "<font face='Courier'>render.yaml</font> with "
+          "<font face='Courier'>field command not found in type "
+          "file.Service</font> on the two cron services. Render&rsquo;s cron "
+          "schema uses <font face='Courier'>startCommand</font>, not "
+          "<font face='Courier'>command</font>. Both were fixed and pushed."),
+
+    ("h2", "3.2 Blueprint, second attempt: a demand for a card"),
+
+    ("p", "With the schema valid, Render asked for payment details. A "
+          "blueprint is all-or-nothing: Render validates and prices "
+          "<b>every</b> service in the file before creating any of them, and "
+          "<font face='Courier'>render.yaml</font> asks for a paid database "
+          "and three paid services."),
+
+    ("p", "A second blueprint, "
+          "<font face='Courier'>render-free.yaml</font>, was written for the "
+          "free tier &mdash; free database, no cron services, object storage "
+          "off. It is committed and valid. The card prompt persisted anyway, "
+          "so the blueprint route was abandoned in favour of creating the "
+          "services by hand, which sidesteps whole-file pricing entirely."),
+
+    ("callout", {
+        "title": "If you return to the blueprint route",
+        "body": "<font face='Courier'>render-free.yaml</font> is ready to use. "
+                "Point the <b>Blueprint Path</b> field at it &mdash; the field "
+                "defaults to <font face='Courier'>render.yaml</font>, which is "
+                "the paid one and will be billed.",
+    }),
+
+    ("pagebreak", None),
+)
+
+
+# ======================================================================
+# 4. The route that worked
+# ======================================================================
+add(
+    ("h1", "4. The route that worked: services by hand"),
+
+    ("h2", "4.1 Database &mdash; New &gt; Postgres"),
+
+    ("table", {
+        "cols": ["Field", "Value"],
+        "widths": [0.32, 0.68],
+        "rows": [
+            ["Name", "<font face='Courier'>servorabd-db</font>"],
+            ["Region", "Singapore"],
+            ["PostgreSQL Version", "18"],
+            ["Compute", "<b>$0 / month (Free)</b> &mdash; the form defaults to "
+                        "a paid row"],
+        ],
+    }),
+
+    ("p", "Selecting the free compute row also removes the separate storage "
+          "charge. The total at the bottom of the form should read "
+          "<font face='Courier'>$0 / month</font> before creating."),
+
+    ("h2", "4.2 API &mdash; New &gt; Web Service"),
+
+    ("table", {
+        "cols": ["Field", "Value"],
+        "widths": [0.26, 0.74],
+        "rows": [
+            ["Name", "<font face='Courier'>servorabd-api</font>"],
+            ["Language", "Python 3"],
+            ["Region", "Singapore &mdash; must match the database"],
+            ["Root Directory", "<font face='Courier'>backend</font>"],
+            ["Instance Type", "Free"],
+            ["Health Check Path", "<font face='Courier'>/healthz/</font>"],
+        ],
+    }),
+
+    ("p", "Build command:"),
+
+    ("code", [
+        "pip install -r requirements.txt \\",
+        "  && python manage.py collectstatic --no-input \\",
+        "  && python manage.py migrate",
+    ]),
+
+    ("p", "Start command &mdash; the "
+          "<font face='Courier'>../</font> resolves because Root Directory is "
+          "<font face='Courier'>backend</font>:"),
+
+    ("code", [
+        "gunicorn --config ../deploy/gunicorn.conf.py",
+    ]),
+
+    ("p", "Eight environment variables, which is the whole set needed to "
+          "boot:"),
+
+    ("code", [
+        "DJANGO_SETTINGS_MODULE = config.settings.prod",
+        "PYTHON_VERSION         = 3.12.7",
+        "WEB_CONCURRENCY        = 1",
+        "DEBUG                  = False",
+        "USE_OBJECT_STORAGE     = False",
+        "TRUSTED_PROXY_COUNT    = 1",
+        "DATABASE_URL           = <Internal Database URL>",
+        "SECRET_KEY             = <Generate>",
+    ]),
+
+    ("p", "<b>Internal</b>, not External: the internal address resolves only "
+          "inside Render&rsquo;s network, which is what you want between two "
+          "services in the same region."),
+
+    ("h2", "4.3 Front end &mdash; New &gt; Static Site"),
+
+    ("table", {
+        "cols": ["Field", "Value"],
+        "widths": [0.32, 0.68],
+        "rows": [
+            ["Name", "<font face='Courier'>servorabd-web</font>"],
+            ["Root Directory", "<font face='Courier'>frontend</font>"],
+            ["Build Command",
+             "<font face='Courier'>npm ci &amp;&amp; npm run build</font>"],
+            ["Publish Directory",
+             "<font face='Courier'>dist</font> &mdash; relative to Root "
+             "Directory, so not "
+             "<font face='Courier'>frontend/dist</font>"],
+            ["Environment Variables",
+             "None. Nothing in <font face='Courier'>src/</font> reads one; the "
+             "API is called at the relative path "
+             "<font face='Courier'>/api/v1</font>."],
+        ],
+    }),
+
+    ("h2", "4.4 The five rewrites"),
+
+    ("p", "Added under <b>Redirects/Rewrites</b> on the static site. Without "
+          "these the landing page loads but every deep link 404s and no data "
+          "ever arrives."),
+
+    ("table", {
+        "cols": ["Source", "Destination", "Action"],
+        "widths": [0.18, 0.62, 0.20],
+        "rows": [
+            ["<font face='Courier'>/api/*</font>",
+             "<font face='Courier'>https://servorabd-api.onrender.com/api/*"
+             "</font>", "Rewrite"],
+            ["<font face='Courier'>/admin/*</font>",
+             "<font face='Courier'>https://servorabd-api.onrender.com/admin/*"
+             "</font>", "Rewrite"],
+            ["<font face='Courier'>/static/*</font>",
+             "<font face='Courier'>https://servorabd-api.onrender.com/static/*"
+             "</font>", "Rewrite"],
+            ["<font face='Courier'>/</font>",
+             "<font face='Courier'>/index.html</font>", "Rewrite"],
+            ["<font face='Courier'>/*</font>",
+             "<font face='Courier'>/app.html</font>", "Rewrite"],
+        ],
+    }),
+
+    ("p", "Order matters: <font face='Courier'>/*</font> is a catch-all and "
+          "swallows anything listed below it. The action must be "
+          "<b>Rewrite</b>, not Redirect &mdash; a redirect changes the "
+          "browser&rsquo;s address bar and breaks the single-origin "
+          "arrangement."),
+
+    ("h2", "4.5 Seeding"),
+
+    ("p", "Free web services have no shell, so these were run locally against "
+          "the <b>External</b> connection string, from "
+          "<font face='Courier'>backend/</font> with the virtual environment "
+          "active:"),
 
     ("code", [
         "$env:DATABASE_URL = \"<External Database URL>\"",
         "$env:DJANGO_SETTINGS_MODULE = \"config.settings.prod\"",
         "$env:SECRET_KEY = \"one-off\"",
-        "python manage.py seed_catalogue",
+        "python manage.py seed_catalogue      # 8 categories, 45 services,",
+        "                                     # 38 locations",
         "python manage.py createsuperuser",
     ]),
 
-    ("h2", "5. Fix the rewrites if renamed"),
+    ("callout", {
+        "title": "createsuperuser does not ask for a name",
+        "body": "The user model has "
+                "<font face='Courier'>REQUIRED_FIELDS = []</font> and "
+                "<font face='Courier'>full_name</font> is "
+                "<font face='Courier'>blank=True</font>, so the admin account "
+                "is created with an empty name and the site header shows "
+                "nothing. Accounts made through the normal registration form "
+                "are unaffected. Fix it in "
+                "<font face='Courier'>/admin/</font> &gt; Users, or with "
+                "<font face='Courier'>manage.py shell</font>.",
+    }),
 
-    ("p", "If Render named your API anything other than "
-          "<font face='Courier'>servorabd-api</font>, edit the four "
-          "<font face='Courier'>destination</font> lines in "
-          "<font face='Courier'>render-free.yaml</font> to the real hostname, "
-          "then push. Otherwise the site loads but no data arrives."),
+    ("pagebreak", None),
+)
 
-    ("h2", "6. Add SMTP if people must log in"),
 
-    ("p", "Login codes are e-mailed. Without these four keys the site works "
-          "but <b>nobody can register or log in</b>. Set them on "
-          "<b>servorabd-api &gt; Environment</b> (Gmail needs an app "
-          "password, not your normal one):"),
+# ======================================================================
+# 5. Verification
+# ======================================================================
+add(
+    ("h1", "5. How it was verified"),
+
+    ("h2", "5.1 Before deploying, locally"),
+
+    ("bullets", [
+        "Production settings load with only the variables Render sets by "
+        "itself &mdash; no SMTP, no bucket, no "
+        "<font face='Courier'>.env</font> file &mdash; which is the state of a "
+        "first deploy. This is the check that caught the crash in 2.1.",
+        "Booted under <font face='Courier'>config.settings.prod</font> against "
+        "a real PostgreSQL database: "
+        "<font face='Courier'>/healthz/</font> returned "
+        "<font face='Courier'>ok</font> and "
+        "<font face='Courier'>/api/v1/categories/</font> returned its rows.",
+        "<font face='Courier'>check --deploy --fail-level WARNING</font> clean "
+        "both bare and fully configured.",
+        "<font face='Courier'>collectstatic</font> writes through WhiteNoise "
+        "to local disk even with object storage on, so the build step needs no "
+        "bucket credentials.",
+        "<font face='Courier'>gunicorn.conf.py</font> resolves from "
+        "<font face='Courier'>rootDir: backend</font> and binds to "
+        "<font face='Courier'>$PORT</font>.",
+        "The frontend build emits both "
+        "<font face='Courier'>index.html</font> and "
+        "<font face='Courier'>app.html</font>.",
+        "The full backend test suite passes.",
+    ]),
+
+    ("h2", "5.2 After deploying, against the live site"),
 
     ("table", {
-        "cols": ["Key", "Value"],
-        "widths": [0.34, 0.66],
+        "cols": ["Check", "Result"],
+        "widths": [0.46, 0.54],
         "rows": [
-            ["<font face='Courier'>EMAIL_HOST</font>",
-             "<font face='Courier'>smtp.gmail.com</font>"],
-            ["<font face='Courier'>EMAIL_HOST_USER</font>",
-             "your Gmail address"],
-            ["<font face='Courier'>EMAIL_HOST_PASSWORD</font>",
-             "16-char app password, no spaces"],
-            ["<font face='Courier'>DEFAULT_FROM_EMAIL</font>",
-             "same Gmail address"],
+            ["<font face='Courier'>/healthz/</font>",
+             "<font face='Courier'>{\"status\": \"ok\", "
+             "\"database\": \"ok\"}</font>"],
+            ["<font face='Courier'>/</font>", "200, landing page"],
+            ["<font face='Courier'>/providers</font>",
+             "200, served from <font face='Courier'>app.html</font>"],
+            ["<font face='Courier'>/services</font>", "200"],
+            ["<font face='Courier'>/admin/login/</font>", "200, styled"],
+            ["Hashed admin CSS",
+             "200 &mdash; proves WhiteNoise&rsquo;s manifest storage works"],
+            ["<font face='Courier'>/api/v1/categories/</font>",
+             "8 categories through the rewrite"],
+            ["<font face='Courier'>/api/v1/locations/</font>",
+             "38 locations"],
         ],
     }),
 
-    ("h2", "7. Verify the site"),
+    ("pagebreak", None),
+)
 
-    ("p", "At <font face='Courier'>https://servorabd-web.onrender.com</font>: "
-          "the landing page loads, <font face='Courier'>/providers</font> "
-          "loads with data, and <font face='Courier'>/admin/</font> shows a "
-          "<b>styled</b> Django login."),
 
-    ("h2", "8. Set a 30-day reminder"),
+# ======================================================================
+# 6. Outstanding
+# ======================================================================
+add(
+    ("h1", "6. What is still outstanding"),
 
-    ("p", "The free database is <b>deleted after 30 days</b> and cannot be "
-          "upgraded in place. Before then, dump it and move to "
-          "<font face='Courier'>render.yaml</font>:"),
+    ("h2", "6.1 Two things to act on"),
+
+    ("callout", {
+        "title": "Rotate the database password",
+        "body": "The External Database URL &mdash; user, password and host "
+                "&mdash; was shown in a screenshot during the deployment "
+                "session. Treat it as disclosed. In Render: "
+                "<b>servorabd-db &gt; Settings</b>, reset the password, then "
+                "update <font face='Courier'>DATABASE_URL</font> on the API "
+                "service.",
+    }),
+
+    ("callout", {
+        "title": "Set a reminder for the 30-day expiry",
+        "body": "The free database is deleted 30 days after creation. It "
+                "cannot be extended, and cannot be upgraded in place &mdash; "
+                "you create a paid one and copy the data across. There is no "
+                "backup on the free plan, so once it is gone the data is "
+                "gone.",
+    }),
+
+    ("h2", "6.2 Working as designed, but limited"),
+
+    ("table", {
+        "cols": ["Limitation", "Consequence"],
+        "widths": [0.30, 0.70],
+        "rows": [
+            ["No SMTP configured",
+             "Login codes are e-mailed, so <b>nobody can register or log "
+             "in</b>. Browsing works; the admin account is unaffected because "
+             "it is password-based. Set "
+             "<font face='Courier'>EMAIL_HOST</font>, "
+             "<font face='Courier'>EMAIL_HOST_USER</font>, "
+             "<font face='Courier'>EMAIL_HOST_PASSWORD</font> and "
+             "<font face='Courier'>DEFAULT_FROM_EMAIL</font> to switch the "
+             "mail backend on."],
+            ["No cron services on free",
+             "The seven scheduled jobs never run: bookings do not auto-expire, "
+             "reviews do not reveal after 14 days, trust scores do not "
+             "recompute. Run them by hand with "
+             "<font face='Courier'>manage.py run_scheduled_jobs</font>."],
+            ["No persistent disk",
+             "Uploads are written to the container filesystem, which is wiped "
+             "on every deploy and every wake-from-sleep."],
+            ["Service sleeps after 15 minutes",
+             "The first visit after a quiet period takes roughly 50 seconds. "
+             "Open the site a minute before showing it to anyone."],
+        ],
+    }),
+
+    ("h2", "6.3 Moving to paid"),
+
+    ("p", "<font face='Courier'>render.yaml</font> already describes the paid "
+          "arrangement: a database with no expiry and daily backups, a service "
+          "that never sleeps, two cron services, and object storage for "
+          "uploads. Take a copy of the data first, while the free database "
+          "still exists:"),
 
     ("code", [
         "pg_dump --format=custom --no-owner \\",
-        "        --dbname=\"<External Database URL>\" --file=servorabd.dump",
+        "        --dbname=\"<External Database URL>\" \\",
+        "        --file=servorabd.dump",
     ]),
 
-    ("h2", "If something breaks"),
+    ("p", "<font face='Courier'>deploy/RENDER.md</font> covers the paid route "
+          "in full, including the object storage bucket and the rate-limiting "
+          "check that needs a live deployment."),
 
-    ("table", {
-        "cols": ["Symptom", "Cause"],
-        "widths": [0.40, 0.60],
-        "rows": [
-            ["First visit takes ~50s", "Free service waking. Expected."],
-            ["Lists are empty",
-             "<font face='Courier'>seed_catalogue</font> not run (step 4)."],
-            ["No login code arrives", "No SMTP (step 6)."],
-            ["Site loads, no data",
-             "Rewrite hostname wrong (step 5)."],
-            ["Deep link 404s",
-             "Missing <font face='Courier'>/*</font> rewrite to "
-             "<font face='Courier'>app.html</font>."],
-            ["<font face='Courier'>/admin/</font> unstyled",
-             "<font face='Courier'>collectstatic</font> failed; check build "
-             "log."],
-            ["<font face='Courier'>Bad Request (400)</font>",
-             "Set <font face='Courier'>ALLOWED_HOSTS</font> to your API "
-             "hostname."],
-            ["DB errors after ~a month",
-             "Free database expired (step 8)."],
-            ["Uploads vanish on deploy",
-             "No persistent disk on free. Expected."],
-        ],
-    }),
+    ("h2", "6.4 One check worth doing"),
 
-    ("h2", "Not running on free"),
-
-    ("p", "Cron services need a paid plan, so the seven scheduled jobs never "
-          "fire: bookings will not auto-expire and reviews will not "
-          "auto-reveal. Run one by hand with the step 4 variables set:"),
+    ("p", "Rate limits identify a caller by IP address, read from "
+          "<font face='Courier'>X-Forwarded-For</font>, trusting as many "
+          "entries as <font face='Courier'>TRUSTED_PROXY_COUNT</font> says. "
+          "Too high a number and a forged header buys a fresh allowance on "
+          "every request. It is set to "
+          "<font face='Courier'>1</font>, correct for a single Render proxy, "
+          "but unconfirmed against a live deployment. To check, set "
+          "<font face='Courier'>EXPOSE_CLIENT_IDENT=True</font>, wait for the "
+          "redeploy, then run locally and set it back to "
+          "<font face='Courier'>False</font> afterwards:"),
 
     ("code", [
-        "python manage.py run_scheduled_jobs --only reveal_reviews",
+        "python manage.py check_proxy_count \\",
+        "    https://servorabd-api.onrender.com/api/v1/categories/",
     ]),
+
+    ("h2", "6.5 Updating the live site"),
+
+    ("p", "Push to <font face='Courier'>main</font>. Both services rebuild, "
+          "and the API runs its migrations as part of the build. A failed "
+          "build leaves the previous version serving, so a broken push does "
+          "not take the site down."),
 )

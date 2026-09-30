@@ -162,7 +162,7 @@ def body_page(canvas, doc):
     canvas.setFont("Helvetica", 7.5)
     canvas.drawString(LM, BM - 7.5 * mm, C.DATE)
     canvas.drawRightString(PAGE_W - RM, BM - 7.5 * mm,
-                           "Page %d" % canvas.getPageNumber())
+                           "Page %d" % (canvas.getPageNumber() - 2))
     canvas.restoreState()
 
 
@@ -385,7 +385,13 @@ def build(out_path):
         PageTemplate(id="body", frames=[frame], onPage=body_page),
     ])
 
-    story = [NextPageTemplate("body")]
+    story = []
+    story += cover_flowables()
+    story.append(NextPageTemplate("toc"))
+    story.append(PageBreak())
+    story += toc_flowables()
+    story.append(NextPageTemplate("body"))
+    story.append(PageBreak())
     story += body_flowables()
 
     doc.build(story)
