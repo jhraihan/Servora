@@ -51,6 +51,7 @@ export function service(raw) {
     categoryId: raw.category,
     categorySlug: raw.category_slug,
     categoryName: raw.category_name,
+    categoryIcon: raw.category_icon,
     searchTerms: raw.search_terms ?? "",
     pricingModel: raw.pricing_model,
     priceMin: raw.suggested_price_min,

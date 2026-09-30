@@ -131,7 +131,7 @@ try {
   const provider = await firstId(`providers/?service=${service}`);
   const pages = [
     ["home", "/", "#main h1"],
-    ["services", "/services", '#main a[href^="/services/"]'],
+    ["services", "/services", "#main ul li a"],
     ["search results", `/providers?service=${service}`, '[data-testid="provider-card"]'],
     ["provider profile", `/providers/${provider}`, "#main h1"],
     ["login", "/login", "#main h1"],

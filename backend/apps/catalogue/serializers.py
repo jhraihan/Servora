@@ -7,12 +7,14 @@ class ServiceSerializer(serializers.ModelSerializer):
                                           read_only=True)
     category_name = serializers.CharField(source="category.name",
                                           read_only=True)
+    category_icon = serializers.CharField(source="category.icon",
+                                          read_only=True)
 
     class Meta:
         model = Service
         fields = [
             "id", "name", "slug", "description",
-            "category", "category_slug", "category_name",
+            "category", "category_slug", "category_name", "category_icon",
             "pricing_model",
             "suggested_price_min", "suggested_price_max",
             "typical_duration_minutes", "search_terms",
