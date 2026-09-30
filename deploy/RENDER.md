@@ -5,9 +5,15 @@ certificates. This is the easier of the two routes. For a plain Ubuntu server
 instead, see [`DEPLOY.md`](DEPLOY.md).
 
 > **Status:** `render.yaml` and the settings it depends on were written and
-> checked locally, but **nothing here has been run on Render**. Expect to fix
-> a detail or two on the first attempt. Step 7 is not optional — it is the one
-> check that needs the live site.
+> checked locally against a real PostgreSQL database, including a boot under
+> production settings, but **nothing here has been run on Render**. Expect to
+> fix a detail or two on the first attempt. Step 7 is not optional — it is the
+> one check that needs the live site.
+>
+> A first deploy now boots with **only** the values Render supplies
+> automatically: SMTP and R2 are optional, and the service starts without them
+> (mail is discarded, uploads go to the container's disk until you add R2).
+> Fill them in as described in step 3 before inviting real users.
 
 ## What you get
 
@@ -17,6 +23,7 @@ Browser ──> servorabd-web (static site, free)
               ├─ everything else    app.html, the React app
               └─ /api, /admin       forwarded to the API service, so the browser sees one origin
             servorabd-api (web service)   Django under gunicorn
+              └─ /healthz/          Render's health check: checks the database too
             servorabd-db  (PostgreSQL 18)
             two cron services              the seven scheduled jobs
             Cloudflare R2                  uploaded files
@@ -96,7 +103,19 @@ Everything is defined in that file, so you do not create services by hand.
 | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | from step 1 |
 | `S3_BUCKET_NAME` | `servorabd` |
 | `S3_PUBLIC_DOMAIN` | leave empty unless you attach a custom domain to the bucket |
-| `EMAIL_*` | your SMTP details |
+| `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | your SMTP details |
+
+Only `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` really need you on the first
+deploy, and even they have a fallback: the service reads Render's own
+`RENDER_EXTERNAL_HOSTNAME` and trusts that host automatically. Set them
+explicitly once you attach a custom domain.
+
+Leave `EMAIL_HOST` empty and mail is dropped rather than crashing the service —
+useful for a first look, but **OTP login codes are sent by email**, so
+registration will not work until SMTP is set. Likewise, leave `S3_BUCKET_NAME`
+empty and uploads fall back to the container's own disk, which Render wipes on
+every deploy and restart; set R2 up before anyone uploads anything they expect
+to keep.
 
 `CORS_ALLOWED_ORIGINS` stays empty on purpose. The static site forwards `/api`
 to the backend, so the browser only ever talks to one origin and no
@@ -126,7 +145,12 @@ creates accounts with a password published in this repository.
 
 ## 5. Check the site
 
-Visit `https://servorabd-web.onrender.com`:
+First, `https://servorabd-api.onrender.com/healthz/` should return
+`{"status": "ok", "database": "ok"}`. If it reports the database is
+unavailable, the service is up but `DATABASE_URL` is wrong — check it before
+reading any other symptom.
+
+Then visit `https://servorabd-web.onrender.com`:
 
 - The landing page appears, and the headline shows before the page is interactive.
 - `/providers` loads (served by `app.html`, not a 404).
@@ -203,12 +227,27 @@ Checked locally:
   document links fails CI.
 - `render.yaml` parses, and the shared environment block reaches all three
   Python services.
+- Production settings load with only the variables Render sets by itself —
+  no SMTP, no bucket, no `.env` file — which is the state of a first deploy.
+- Booted under `config.settings.prod` against a real PostgreSQL database:
+  `/healthz/` returned `{"status": "ok"}` and `/api/v1/categories/` returned
+  its 8 seeded rows.
+- `/healthz/` answers over plain HTTP while every other path still redirects to
+  HTTPS, so Render's internal health probe is not bounced by a 301.
+- `collectstatic` writes through WhiteNoise to local disk even with object
+  storage switched on, so the build step needs no bucket credentials.
+- `gunicorn.conf.py` resolves from `rootDir: backend` and binds to `$PORT`.
+- The frontend production build succeeds and emits both `index.html` and
+  `app.html`; the bundle has no inline script or style, so the strict
+  Content-Security-Policy in `render.yaml` does not need loosening.
+- The full backend test suite passes with these settings changes.
 - The nightly cron runs at 21:00 UTC, which is 03:00 in Dhaka, as the PRD
   requires.
 
 Not verified, because it needs a live deployment:
 
-- That Render's build and start commands work as written.
+- That Render's build and start commands work as written *on Render* — they
+  were exercised locally, not in Render's build image.
 - That the static site's rewrite rules behave as expected, particularly
   `/` versus every other path.
 - **How many proxies sit in front of the app** — hence step 7.
